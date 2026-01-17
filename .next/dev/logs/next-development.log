@@ -1,0 +1,11 @@
+[00:00:00.786] Server  LOG     
+[00:00:00.786] Server  LOG       We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+[00:00:00.786] Server  LOG       The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+[00:00:00.786] Server  LOG       	- lib was set to dom,dom.iterable,esnext
+[00:00:00.786] Server  LOG       	- allowJs was set to true
+[00:00:00.786] Server  LOG       	- noEmit was set to true
+[00:00:00.786] Server  LOG     
+[00:00:01.545] Server  LOG     ✓ Ready in 1382ms
+[00:00:04.145] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:04.253] Browser WARN    Image with src "http://localhost:3000/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
