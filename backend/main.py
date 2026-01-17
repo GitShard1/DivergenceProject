@@ -131,13 +131,19 @@ def github_login():
 @app.get("/auth/github/callback")
 async def github_callback(code: str, state: str = None):
     """Handle GitHub OAuth callback"""
+    print(f"DEBUG: Received code: {code}")
+    print(f"DEBUG: Received state: {state}")
+    
     if not code:
+        print("DEBUG: No code received!")
         raise HTTPException(status_code=400, detail="Missing code")
     
     try:
         # Get GitHub user info
+        print("DEBUG: Attempting to get GitHub user...")
         github_user = await get_github_user(code)
-        
+        print(f"DEBUG: GitHub user data: {github_user}")
+       
         # Get or create user in MongoDB
         users = db["users"]
         user = users.find_one({"github_id": github_user["id"]})
@@ -177,8 +183,9 @@ async def github_callback(code: str, state: str = None):
                 "avatar_url": user.get("avatar_url")
             }
         })
-    
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return redirect(f"{GITHUB_AUTHORIZE_URL}?client_id={params['client_id']}&redirect_uri={params['redirect_uri']}&scope={params['scope']}")
 
+        
+    except Exception as e:
+        print(f"DEBUG: Error occurred: {str(e)}")
+        print(f"DEBUG: Error type: {type(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
