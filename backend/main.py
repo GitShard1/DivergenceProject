@@ -28,21 +28,33 @@ from pymongo.mongo_client import MongoClient
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
-uri = F"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.ncuqrpz.mongodb.net/?appName=Cluster0"
 
-# Create a new client and connect to the server
-client = MongoClient(uri)
-
-# Send a ping to confirm a successful connection
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
+# Check if credentials are missing
+if not MONGO_USERNAME or not MONGO_PASSWORD:
+    print("WARNING: MONGO_USERNAME or MONGO_PASSWORD not set in .env file!")
+    print("MongoDB features will not work. Make sure your .env has these variables.")
+    client = None
+else:
+    uri = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.ncuqrpz.mongodb.net/?appName=Cluster0"
+    
+    # Create a new client with timeout configuration
+    client = MongoClient(uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=10000)
+    
+    # Send a ping to confirm a successful connection (non-blocking startup)
+    try:
+        client.admin.command('ping')
+        print("✓ Successfully connected to MongoDB!")
+    except Exception as e:
+        print(f"✗ MongoDB connection failed: {e}")
+        print("The app will continue, but MongoDB features won't work until connection is restored.")
 
 # MongoDB connection (replace with your connection string)
-db = client["mydatabase"]
-collection = db["items"]
+if client:
+    db = client["mydatabase"]
+    collection = db["items"]
+else:
+    db = None
+    collection = None
 
 class Item(BaseModel):
     name: str
@@ -90,13 +102,13 @@ async def get_github_user(code: str):
             },
             headers={"Accept": "application/json"}
         )
-        
+        print(token_response)
         if token_response.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to get GitHub token")
         
         token_data = token_response.json()
         access_token = token_data.get("access_token")
-        
+        print(access_token)
         if not access_token:
             raise HTTPException(status_code=400, detail="No access token received")
         
