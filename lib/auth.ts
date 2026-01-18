@@ -3,6 +3,7 @@
 export interface AuthState {
   username: string | null
   token: string | null
+  userId: string | null
   isAuthenticated: boolean
 }
 
@@ -11,15 +12,17 @@ export interface AuthState {
  */
 export function getAuthState(): AuthState {
   if (typeof window === 'undefined') {
-    return { username: null, token: null, isAuthenticated: false }
+    return { username: null, token: null, userId: null, isAuthenticated: false }
   }
 
   const username = localStorage.getItem('username')
   const token = localStorage.getItem('auth_token')
+  const userId = localStorage.getItem('user_id')
 
   return {
     username,
     token,
+    userId,
     isAuthenticated: !!(username && token)
   }
 }
@@ -27,9 +30,12 @@ export function getAuthState(): AuthState {
 /**
  * Save authentication state to localStorage
  */
-export function setAuthState(username: string, token: string): void {
+export function setAuthState(username: string, token: string, userId?: string): void {
   localStorage.setItem('username', username)
   localStorage.setItem('auth_token', token)
+  if (userId) {
+    localStorage.setItem('user_id', userId)
+  }
 }
 
 /**
@@ -38,6 +44,7 @@ export function setAuthState(username: string, token: string): void {
 export function clearAuthState(): void {
   localStorage.removeItem('username')
   localStorage.removeItem('auth_token')
+  localStorage.removeItem('user_id')
 }
 
 /**

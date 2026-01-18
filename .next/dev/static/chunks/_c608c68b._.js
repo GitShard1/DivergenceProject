@@ -176,11 +176,12 @@ __turbopack_context__.s([
     "default",
     ()=>ProfilePage
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/Navbar.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$script$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/script.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/Navbar.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/auth.ts [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
@@ -190,7 +191,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const API_ENDPOINT = "http://localhost:8000";
+const API_ENDPOINT = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:8000';
 function ProfilePage() {
     _s();
     const [userData, setUserData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -198,6 +199,85 @@ function ProfilePage() {
     const chartRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const chartInstanceRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
+    // Language colors mapping (GitHub style)
+    const languageColors = {
+        JavaScript: '#f1e05a',
+        TypeScript: '#3178c6',
+        Python: '#3572A5',
+        Java: '#b07219',
+        HTML: '#e34c26',
+        CSS: '#563d7c',
+        Ruby: '#701516',
+        PHP: '#4F5D95',
+        'C++': '#f34b7d',
+        C: '#555555',
+        'C#': '#178600',
+        Go: '#00ADD8',
+        Rust: '#dea584',
+        Swift: '#ffac45',
+        Kotlin: '#A97BFF',
+        Dart: '#00B4AB',
+        Shell: '#89e051',
+        Markdown: '#083fa1',
+        JSON: '#292929',
+        default: '#8b949e'
+    };
+    const transformData = (rawData)=>{
+        // Transform skills object to radar array
+        let skillsRadar = Object.entries(rawData.skills || {}).filter(([key])=>key !== 'radar') // Exclude if there's a 'radar' key
+        .map(([key, value])=>({
+                subject: key.replace(/_/g, ' ').replace(/\b\w/g, (l)=>l.toUpperCase()),
+                score: typeof value === 'number' ? value * 100 : 0
+            }));
+        // If no skills or all zero, create default skill set to show the spider web
+        if (skillsRadar.length === 0 || skillsRadar.every((s)=>s.score === 0)) {
+            skillsRadar = [
+                {
+                    subject: 'AI/ML',
+                    score: 0
+                },
+                {
+                    subject: 'Web Development',
+                    score: 0
+                },
+                {
+                    subject: 'Mobile Development',
+                    score: 0
+                },
+                {
+                    subject: 'Cloud/DevOps',
+                    score: 0
+                },
+                {
+                    subject: 'Data Engineering',
+                    score: 0
+                },
+                {
+                    subject: 'Cybersecurity',
+                    score: 0
+                }
+            ];
+        }
+        // Transform languages object to array
+        const languagesArray = Object.entries(rawData.languages || {}).map(([name, percentage])=>({
+                name,
+                percentage: typeof percentage === 'number' ? Math.round(percentage) : 0,
+                color: languageColors[name] || languageColors.default
+            })).sort((a, b)=>b.percentage - a.percentage) // Sort by percentage descending
+        ;
+        // Transform frameworks object/null to array
+        const frameworksArray = rawData.frameworks ? Object.keys(rawData.frameworks).filter((key)=>rawData.frameworks[key] > 0) : [];
+        // Transform libraries object/null to array, sorted by frequency
+        const librariesArray = rawData.libraries ? Object.entries(rawData.libraries).sort(([, a], [, b])=>b - a).slice(0, 20) // Top 20 libraries
+        .map(([name])=>name) : [];
+        return {
+            profile: rawData.profile,
+            skillsRadar,
+            languagesArray,
+            frameworksArray,
+            librariesArray
+        };
+    };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "ProfilePage.useEffect": ()=>{
             fetchUserData();
@@ -230,9 +310,11 @@ function ProfilePage() {
                 headers: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getAuthHeader"])()
             });
             if (res.ok) {
-                const data = await res.json();
-                console.log('Received data:', data); // Debug log to see structure
-                setUserData(data);
+                const rawData = await res.json();
+                console.log('Received raw data:', rawData);
+                const transformed = transformData(rawData);
+                console.log('Transformed data:', transformed);
+                setUserData(transformed);
             } else if (res.status === 401) {
                 (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["clearAuthState"])();
                 router.push('/');
@@ -243,7 +325,7 @@ function ProfilePage() {
                 });
                 if (userRes.ok) {
                     const githubUser = await userRes.json();
-                    // Set minimal user data
+                    // Set minimal user data with default spider web
                     setUserData({
                         profile: {
                             name: githubUser.name || username || 'Unknown User',
@@ -251,12 +333,35 @@ function ProfilePage() {
                             avatarUrl: githubUser.avatar_url || '',
                             bio: githubUser.bio || 'No bio available'
                         },
-                        skills: {
-                            radar: []
-                        },
-                        languages: [],
-                        frameworks: [],
-                        libraries: []
+                        skillsRadar: [
+                            {
+                                subject: 'AI/ML',
+                                score: 0
+                            },
+                            {
+                                subject: 'Web Development',
+                                score: 0
+                            },
+                            {
+                                subject: 'Mobile Development',
+                                score: 0
+                            },
+                            {
+                                subject: 'Cloud/DevOps',
+                                score: 0
+                            },
+                            {
+                                subject: 'Data Engineering',
+                                score: 0
+                            },
+                            {
+                                subject: 'Cybersecurity',
+                                score: 0
+                            }
+                        ],
+                        languagesArray: [],
+                        frameworksArray: [],
+                        librariesArray: []
                     });
                 }
             }
@@ -266,67 +371,76 @@ function ProfilePage() {
             setLoading(false);
         }
     };
-    const renderRadarChart = ()=>{
-        if (!chartRef.current || !userData || !userData.skills?.radar) return;
-        // @ts-ignore - Chart.js loaded via CDN
-        if (typeof Chart === 'undefined') return;
-        const ctx = chartRef.current.getContext('2d');
-        if (!ctx) return;
-        if (chartInstanceRef.current) {
-            chartInstanceRef.current.destroy();
-        }
-        const labels = userData.skills.radar.map((s)=>s.subject);
-        const values = userData.skills.radar.map((s)=>s.score);
-        // @ts-ignore
-        chartInstanceRef.current = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Skills',
-                        data: values,
-                        backgroundColor: 'rgba(46, 160, 67, 0.3)',
-                        borderColor: '#2ea043',
-                        borderWidth: 2,
-                        pointBackgroundColor: '#2ea043',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#2ea043'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20,
-                            color: '#8b949e',
-                            backdropColor: 'transparent'
-                        },
-                        grid: {
-                            color: '#30363d'
-                        },
-                        pointLabels: {
-                            color: '#8b949e',
-                            font: {
-                                size: 12
+    const renderRadarChart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "ProfilePage.useCallback[renderRadarChart]": ()=>{
+            if (!chartRef.current || !userData) return;
+            // @ts-ignore - Chart.js loaded via CDN
+            if (typeof Chart === 'undefined') return;
+            const ctx = chartRef.current.getContext('2d');
+            if (!ctx) return;
+            // Destroy existing chart instance
+            if (chartInstanceRef.current) {
+                chartInstanceRef.current.destroy();
+            }
+            const labels = userData.skillsRadar?.map({
+                "ProfilePage.useCallback[renderRadarChart]": (s)=>s.subject
+            }["ProfilePage.useCallback[renderRadarChart]"]) || [];
+            const values = userData.skillsRadar?.map({
+                "ProfilePage.useCallback[renderRadarChart]": (s)=>s.score
+            }["ProfilePage.useCallback[renderRadarChart]"]) || [];
+            // @ts-ignore - Chart.js types
+            chartInstanceRef.current = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Skills',
+                            data: values,
+                            backgroundColor: 'rgba(46, 160, 67, 0.3)',
+                            borderColor: '#2ea043',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#2ea043',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#2ea043'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: '#8b949e',
+                                backdropColor: 'transparent'
+                            },
+                            grid: {
+                                color: '#30363d'
+                            },
+                            pointLabels: {
+                                color: '#8b949e',
+                                font: {
+                                    size: 12
+                                }
                             }
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
                 }
-            }
-        });
-    };
+            });
+        }
+    }["ProfilePage.useCallback[renderRadarChart]"], [
+        userData
+    ]);
     if (loading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
             children: [
@@ -335,12 +449,12 @@ function ProfilePage() {
                     strategy: "beforeInteractive"
                 }, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 165,
+                    lineNumber: 261,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 166,
+                    lineNumber: 262,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -348,7 +462,7 @@ function ProfilePage() {
                     children: "Loading..."
                 }, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 167,
+                    lineNumber: 263,
                     columnNumber: 9
                 }, this)
             ]
@@ -362,12 +476,12 @@ function ProfilePage() {
                     strategy: "beforeInteractive"
                 }, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 175,
+                    lineNumber: 271,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 176,
+                    lineNumber: 272,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -376,12 +490,12 @@ function ProfilePage() {
                         children: "No profile data available. Please process your GitHub data first."
                     }, void 0, false, {
                         fileName: "[project]/app/profile/page.tsx",
-                        lineNumber: 178,
+                        lineNumber: 274,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 177,
+                    lineNumber: 273,
                     columnNumber: 9
                 }, this)
             ]
@@ -399,12 +513,12 @@ function ProfilePage() {
                 }
             }, void 0, false, {
                 fileName: "[project]/app/profile/page.tsx",
-                lineNumber: 186,
+                lineNumber: 282,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Navbar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                 fileName: "[project]/app/profile/page.tsx",
-                lineNumber: 195,
+                lineNumber: 293,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -422,10 +536,11 @@ function ProfilePage() {
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                             src: userData.profile?.avatarUrl || '/default-avatar.png',
                                             alt: userData.profile?.name || 'User',
-                                            className: "profile-picture"
+                                            className: "profile-picture",
+                                            loading: "eager"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 202,
+                                            lineNumber: 309,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -433,7 +548,7 @@ function ProfilePage() {
                                             children: userData.profile?.name || 'Unknown'
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 207,
+                                            lineNumber: 316,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -444,7 +559,7 @@ function ProfilePage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 208,
+                                            lineNumber: 318,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -452,96 +567,100 @@ function ProfilePage() {
                                             children: userData.profile?.bio || 'No bio available'
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 209,
+                                            lineNumber: 320,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/profile/page.tsx",
-                                    lineNumber: 201,
+                                    lineNumber: 307,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/profile/page.tsx",
-                                lineNumber: 200,
+                                lineNumber: 306,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/profile/page.tsx",
-                            lineNumber: 199,
+                            lineNumber: 305,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
                             className: "profile-main",
                             children: [
-                                userData.skills?.radar && userData.skills.radar.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
                                     className: "skills-section",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                             children: "Skills Overview"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 219,
-                                            columnNumber: 17
+                                            lineNumber: 336,
+                                            columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                             children: "Chart of all the repositories into a comprehensive developer profile"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 220,
-                                            columnNumber: 17
+                                            lineNumber: 337,
+                                            columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "chart-container",
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("canvas", {
                                                 ref: chartRef,
-                                                id: "skillsChart"
+                                                id: "skillsChart",
+                                                "aria-label": "Skills radar chart"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/profile/page.tsx",
-                                                lineNumber: 222,
-                                                columnNumber: 19
+                                                lineNumber: 340,
+                                                columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 221,
-                                            columnNumber: 17
+                                            lineNumber: 338,
+                                            columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/profile/page.tsx",
-                                    lineNumber: 218,
-                                    columnNumber: 15
+                                    lineNumber: 335,
+                                    columnNumber: 13
                                 }, this),
-                                userData.languages && userData.languages.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                userData.languagesArray && userData.languagesArray.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
                                     className: "languages-section",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                             children: "Programming Languages"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 230,
+                                            lineNumber: 354,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                             children: "Percentage of usage in each language"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 231,
+                                            lineNumber: 355,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "languages-grid",
-                                            children: userData.languages.map((lang, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            role: "list",
+                                            children: userData.languagesArray.map((lang, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "language-item",
+                                                    role: "listitem",
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             className: "language-dot",
                                                             style: {
                                                                 backgroundColor: lang.color
-                                                            }
+                                                            },
+                                                            "aria-hidden": "true"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/profile/page.tsx",
-                                                            lineNumber: 235,
+                                                            lineNumber: 359,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -549,7 +668,7 @@ function ProfilePage() {
                                                             children: lang.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/profile/page.tsx",
-                                                            lineNumber: 239,
+                                                            lineNumber: 364,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -560,123 +679,127 @@ function ProfilePage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/profile/page.tsx",
-                                                            lineNumber: 240,
+                                                            lineNumber: 365,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, idx, true, {
                                                     fileName: "[project]/app/profile/page.tsx",
-                                                    lineNumber: 234,
+                                                    lineNumber: 358,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 232,
+                                            lineNumber: 356,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/profile/page.tsx",
-                                    lineNumber: 229,
+                                    lineNumber: 353,
                                     columnNumber: 15
                                 }, this),
-                                userData.frameworks && userData.frameworks.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                userData.frameworksArray && userData.frameworksArray.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
                                     className: "frameworks-section",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                             children: "Frameworks"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 250,
+                                            lineNumber: 380,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                             children: "Frameworks Frequency"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 251,
+                                            lineNumber: 381,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "tags-container",
-                                            children: userData.frameworks.map((fw, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            role: "list",
+                                            children: userData.frameworksArray.map((fw, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "tag tag-purple",
+                                                    role: "listitem",
                                                     children: fw
                                                 }, idx, false, {
                                                     fileName: "[project]/app/profile/page.tsx",
-                                                    lineNumber: 254,
+                                                    lineNumber: 384,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 252,
+                                            lineNumber: 382,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/profile/page.tsx",
-                                    lineNumber: 249,
+                                    lineNumber: 379,
                                     columnNumber: 15
                                 }, this),
-                                userData.libraries && userData.libraries.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
+                                userData.librariesArray && userData.librariesArray.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
                                     className: "libraries-section",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
                                             children: "Libraries"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 263,
+                                            lineNumber: 398,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                             children: "Libraries & Tools use frequency"
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 264,
+                                            lineNumber: 399,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "tags-container",
-                                            children: userData.libraries.map((lib, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            role: "list",
+                                            children: userData.librariesArray.map((lib, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "tag tag-green",
+                                                    role: "listitem",
                                                     children: lib
                                                 }, idx, false, {
                                                     fileName: "[project]/app/profile/page.tsx",
-                                                    lineNumber: 267,
+                                                    lineNumber: 402,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/profile/page.tsx",
-                                            lineNumber: 265,
+                                            lineNumber: 400,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/profile/page.tsx",
-                                    lineNumber: 262,
+                                    lineNumber: 397,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/profile/page.tsx",
-                            lineNumber: 215,
+                            lineNumber: 326,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/profile/page.tsx",
-                    lineNumber: 197,
+                    lineNumber: 296,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/profile/page.tsx",
-                lineNumber: 196,
+                lineNumber: 295,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true);
 }
-_s(ProfilePage, "yBO+DLeZ0EhJRcuphVRH5JzxagU=", false, function() {
+_s(ProfilePage, "N2pSr+C0hwLolv0GLhcv3A8WhZU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];

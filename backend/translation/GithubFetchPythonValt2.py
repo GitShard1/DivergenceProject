@@ -4,10 +4,14 @@ import sys
 import shutil
 import subprocess
 import requests
+import time
 from pathlib import Path
 
 # Optional: Use a GitHub token to increase API rate limits
 GITHUB_TOKEN = os.getenv('GITHUB_PERSACCESS_TOKEN')
+
+# Configurable: Number of repos to fetch (default 3 to reduce rate limit usage)
+MAX_REPOS = int(os.getenv('GITHUB_MAX_REPOS', '3'))
 
 # Files to EXCLUDE
 EXCLUDE_FILES = {
@@ -88,8 +92,11 @@ def extract_username_and_repo(profile_or_repo_url):
     else:
         raise ValueError("Invalid GitHub URL format")
 
-def fetch_all_repos_for_user(username, max_repos=5):
-    """Fetch repositories for a user using GitHub API"""
+def fetch_all_repos_for_user(username, max_repos=None):
+    """Fetch repositories for a user using GitHub API with retry logic"""
+    if max_repos is None:
+        max_repos = MAX_REPOS
+    
     url = f"https://api.github.com/users/{username}/repos"
     params = {
         'page': 1,
@@ -105,31 +112,73 @@ def fetch_all_repos_for_user(username, max_repos=5):
     
     if GITHUB_TOKEN:
         headers["Authorization"] = f"token {GITHUB_TOKEN}"
+        print("Using authenticated GitHub API (higher rate limits)")
+    else:
+        print("⚠ WARNING: No GitHub token found. Rate limit: 60 requests/hour")
+        print("Set GITHUB_PERSACCESS_TOKEN environment variable for 5000 requests/hour")
     
-    try:
-        response = requests.get(url, params=params, headers=headers, timeout=10)
-        if response.status_code != 200:
-            print(f"Error fetching repos: {response.status_code}")
-            return []
-        
-        repos = response.json()
-        all_repos = []
-        
-        for repo in repos[:max_repos]:
-            repo_info = {
-                'name': repo['name'],
-                'clone_url': repo['clone_url'],
-                'description': repo['description'] or 'No description',
-                'language': repo['language'] or 'Not specified'
-            }
-            all_repos.append(repo_info)
-        
-        print(f"Fetched {len(all_repos)} repositories for {username}")
-        return all_repos
+    # Retry logic with exponential backoff
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                wait_time = 2 ** attempt  # Exponential backoff: 2s, 4s, 8s
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
             
-    except Exception as e:
-        print(f"Error fetching repos: {e}")
-        return []
+            response = requests.get(url, params=params, headers=headers, timeout=10)
+        
+        # Check rate limit status
+        rate_limit_remaining = response.headers.get('X-RateLimit-Remaining')
+        rate_limit_reset = response.headers.get('X-RateLimit-Reset')
+        
+        if rate_limit_remaining:
+            print(f"GitHub API rate limit: {rate_limit_remaining} requests remaining")
+            if int(rate_limit_remaining) < 10:
+                print(f"⚠ WARNING: Only {rate_limit_remaining} API requests remaining!")
+                if rate_limit_reset:
+                    from datetime import datetime
+                    reset_time = datetime.fromtimestamp(int(rate_limit_reset))
+                    print(f"Rate limit resets at: {reset_time}")
+        
+            if response.status_code == 403:
+                retry_after = response.headers.get('Retry-After', '60')
+                print(f"❌ GitHub API rate limit exceeded! (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    print(f"Will retry after {retry_after} seconds...")
+                    continue
+                else:
+                    print("Please set GITHUB_PERSACCESS_TOKEN environment variable for higher limits")
+                    return []
+            
+            if response.status_code == 200:
+                repos = response.json()
+                all_repos = []
+                
+                for repo in repos[:max_repos]:
+                    repo_info = {
+                        'name': repo['name'],
+                        'clone_url': repo['clone_url'],
+                        'description': repo['description'] or 'No description',
+                        'language': repo['language'] or 'Not specified'
+                    }
+                    all_repos.append(repo_info)
+                
+                print(f"Fetched {len(all_repos)} repositories for {username}")
+                return all_repos
+            else:
+                print(f"Error fetching repos: {response.status_code} (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    continue
+                return []
+                
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e} (attempt {attempt + 1}/{max_retries})")
+            if attempt < max_retries - 1:
+                continue
+            return []
+    
+    return []
 
 def clone_repo(clone_url, dest_dir):
     """Clone a Git repository to a destination directory"""
@@ -190,11 +239,10 @@ def process_local_repo(repo_path, output_file, repo_name):
     
     return processed_files
 
-def fetch_github_repo(profile_or_repo_url):
+def fetch_github_repo(profile_or_repo_url, output_file="RESULTS.txt"):
     """Main function to fetch GitHub repositories"""
     username, repo = extract_username_and_repo(profile_or_repo_url)
     
-    output_file = "RESULTS.txt"
     temp_dir = "temp_repos"
     
     try:
@@ -215,7 +263,7 @@ def fetch_github_repo(profile_or_repo_url):
         repos_to_process = []
         
         if repo == "ALL":
-            repos_info = fetch_all_repos_for_user(username, max_repos=5)
+            repos_info = fetch_all_repos_for_user(username, max_repos=MAX_REPOS)
             repos_to_process = [(r['name'], r['clone_url']) for r in repos_info]
         else:
             clone_url = f"https://github.com/{username}/{repo}.git"
@@ -290,9 +338,10 @@ def fetch_github_repo(profile_or_repo_url):
 if __name__ == "__main__":
     # print("HELPPPPPPPPPPPPPPP")
     # print(sys.argv)
-    if len(sys.argv) != 2:
-        print("Usage: python GithubFetchPython.py '[REPO OR GITHUB PROFILE URL]'")
+    if len(sys.argv) < 2:
+        print("Usage: python GithubFetchPython.py '[REPO OR GITHUB PROFILE URL]' [output_file]")
         sys.exit(1)
     
     profile_or_repo_url = sys.argv[1]
-    fetch_github_repo(profile_or_repo_url)
+    output_file = sys.argv[2] if len(sys.argv) > 2 else "RESULTS.txt"
+    fetch_github_repo(profile_or_repo_url, output_file)

@@ -273,10 +273,10 @@ function HomePage() {
                         alignItems: 'center',
                         minHeight: '60vh'
                     },
-                    className: "jsx-458572a6658a3f58" + " " + "home-container",
+                    className: "jsx-607ace85104a4a9b" + " " + "home-container",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "jsx-458572a6658a3f58" + " " + "spinner-container",
+                            className: "jsx-607ace85104a4a9b" + " " + "spinner-container",
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                                 width: "60",
                                 height: "60",
@@ -284,7 +284,7 @@ function HomePage() {
                                 style: {
                                     animation: 'spin 1s linear infinite'
                                 },
-                                className: "jsx-458572a6658a3f58" + " " + "spinner",
+                                className: "jsx-607ace85104a4a9b" + " " + "spinner",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
                                     cx: "30",
                                     cy: "30",
@@ -295,7 +295,7 @@ function HomePage() {
                                     strokeDasharray: "157",
                                     strokeDashoffset: "39",
                                     strokeLinecap: "round",
-                                    className: "jsx-458572a6658a3f58"
+                                    className: "jsx-607ace85104a4a9b"
                                 }, void 0, false, {
                                     fileName: "[project]/app/home/page.tsx",
                                     lineNumber: 135,
@@ -312,7 +312,7 @@ function HomePage() {
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                            id: "458572a6658a3f58",
+                            id: "607ace85104a4a9b",
                             children: "@keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}"
                         }, void 0, false, void 0, this)
                     ]

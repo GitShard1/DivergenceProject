@@ -1,0 +1,42 @@
+{
+  "languages": {
+    "JavaScript": 59.48,
+    "Markdown": 2.59,
+    "HTML": 14.66,
+    "CSS": 23.28
+  },
+  "libraries": {
+    "url": 1,
+    "http": 1
+  },
+  "frameworks": null,
+  "technical_depth": {
+    "depth_score": 0.074,
+    "avg_repo_size": 36.96,
+    "max_repo_size": 68.82,
+    "level": "beginner"
+  },
+  "composition": {
+    "frontend": 0.384,
+    "backend": 0.616,
+    "data": 0.0
+  },
+  "skills": {
+    "ai_ml": 0.0,
+    "web_development": 0.0,
+    "mobile_development": 0.0,
+    "cloud_devops": 0.0,
+    "data_engineering": 0.0,
+    "cybersecurity": 0.0
+  },
+  "quality": {
+    "avg_test_coverage": 0.0,
+    "quality_score": 0.0,
+    "rating": "needs improvement"
+  },
+  "metadata": {
+    "total_repositories": 2,
+    "total_commits": 0,
+    "analysis_timestamp": "2026-01-18T05:23:50.745106"
+  }
+}

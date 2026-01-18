@@ -43,16 +43,162 @@ def create_filtered_data(repos):
     """Create filtered.json structure"""
     repositories = []
     all_commits = []
+    all_languages = set()
     
     for repo_data in repos:
         repo_info = analyze_single_repo(repo_data['name'], repo_data['content'])
         repositories.append(repo_info)
         all_commits.extend(repo_info['commits'])
+        all_languages.update(repo_info['languages'].keys())
+    
+    # Calculate stats for home page
+    total_projects = len(repositories)
+    total_commits = len(all_commits)
+    total_languages = len(all_languages)
+    
+    # Calculate rating based on activity and diversity
+    # Rating out of 100: commits (50%) + languages (25%) + repos (25%)
+    commit_score = min(total_commits / 100, 1.0) * 50
+    language_score = min(total_languages / 10, 1.0) * 25
+    repo_score = min(total_projects / 20, 1.0) * 25
+    total_score = round(commit_score + language_score + repo_score)
+    
+    # Convert score to quality level and stars
+    if total_score < 30:
+        quality_level = "Beginner"
+        star_rating = 2
+    elif total_score < 60:
+        quality_level = "Intermediate"
+        star_rating = 4
+    else:
+        quality_level = "Advanced"
+        star_rating = 5
+    
+    # Language colors (common ones)
+    lang_colors = {
+        'Python': '#3572A5',
+        'JavaScript': '#f1e05a',
+        'TypeScript': '#2b7489',
+        'Java': '#b07219',
+        'C++': '#f34b7d',
+        'C': '#555555',
+        'Go': '#00ADD8',
+        'Rust': '#dea584',
+        'HTML': '#e34c26',
+        'CSS': '#563d7c',
+        'Ruby': '#701516',
+        'PHP': '#4F5D95',
+        'Swift': '#ffac45',
+        'Kotlin': '#F18E33',
+        'C#': '#178600',
+    }
+    
+    # Create top projects list based on size and complexity
+    top_projects = []
+    for repo in sorted(repositories, key=lambda r: r['size_kb'], reverse=True)[:5]:
+        # Get primary language
+        primary_lang = max(repo['languages'].items(), key=lambda x: x[1])[0] if repo['languages'] else 'Unknown'
+        
+        top_projects.append({
+            'nameTop': repo['name'],
+            'descriptionTop': f"Size: {repo['size_kb']:.1f} KB, {len(repo['languages'])} languages",
+            'languageTop': primary_lang,
+            'languageColorTop': lang_colors.get(primary_lang, '#8b949e'),
+            'starsTop': 0,  # Not available from current data
+            'forksTop': 0   # Not available from current data
+        })
+    
+    # Create new projects list (most recent repositories by analyzing commit patterns)
+    new_projects = []
+    # Sort by number of recent commits (last in commit list)
+    repos_with_recent = sorted(repositories, key=lambda r: len(r['commits']), reverse=True)[:5]
+    
+    for repo in repos_with_recent:
+        primary_lang = max(repo['languages'].items(), key=lambda x: x[1])[0] if repo['languages'] else 'Unknown'
+        
+        # Calculate "time ago" for created date (simplified)
+        commit_count = len(repo['commits'])
+        created_at = f"{commit_count} commits" if commit_count > 0 else "No commits"
+        
+        new_projects.append({
+            'nameNew': repo['name'],
+            'descriptionNew': f"Active repository with {len(repo['languages'])} languages",
+            'languageNew': primary_lang,
+            'languageColorNew': lang_colors.get(primary_lang, '#8b949e'),
+            'createdAtNew': created_at,
+            'commitsNew': commit_count
+        })
+    
+    # Create recent works based on latest commits across repositories
+    recent_works = []
+    # Collect all commits with their repo names
+    all_commits_with_repo = []
+    for repo in repositories:
+        for commit in repo['commits'][:3]:  # Take top 3 commits per repo
+            all_commits_with_repo.append({
+                'repo': repo['name'],
+                'commit': commit,
+                'languages': repo['languages']
+            })
+    
+    # Sort by date and take most recent
+    all_commits_with_repo.sort(key=lambda x: x['commit'].get('date', ''), reverse=True)
+    
+    # If we have commits, use them
+    if all_commits_with_repo:
+        for i, item in enumerate(all_commits_with_repo[:5]):
+            # Determine status and priority based on commit position
+            status = "In Progress" if i < 2 else "To Do"
+            priority = "High" if i < 3 else "Medium"
+            
+            # Get primary language for this repo
+            primary_lang = max(item['languages'].items(), key=lambda x: x[1])[0] if item['languages'] else 'Unknown'
+            
+            commit_msg = item['commit'].get('message', 'Work on repository')[:50]
+            
+            recent_works.append({
+                'nameRecent': commit_msg,
+                'projectRecent': item['repo'],
+                'statusRecent': status,
+                'priorityRecent': priority,
+                'lastUpdatedRecent': 'Recently'
+            })
+    else:
+        # Generate mock recent works based on repositories when no commits available
+        work_templates = [
+            "Update code structure",
+            "Refactor components",
+            "Add new features",
+            "Fix bugs and issues",
+            "Improve performance"
+        ]
+        
+        for i, repo in enumerate(repositories[:5]):
+            primary_lang = max(repo['languages'].items(), key=lambda x: x[1])[0] if repo['languages'] else 'Unknown'
+            
+            recent_works.append({
+                'nameRecent': work_templates[i % len(work_templates)],
+                'projectRecent': repo['name'],
+                'statusRecent': "In Progress" if i < 2 else "To Do",
+                'priorityRecent': "High" if i < 3 else "Medium",
+                'lastUpdatedRecent': '2 hours ago' if i == 0 else f'{i+1} days ago'
+            })
     
     return {
         'repositories': repositories,
-        'total_commits': len(all_commits),
-        'commit_dates': sorted([c['date'] for c in all_commits if c.get('date')])
+        'total_commits': total_commits,
+        'commit_dates': sorted([c['date'] for c in all_commits if c.get('date')]),
+        'statsHome': {
+            'totalProjects': total_projects,
+            'totalRating': star_rating,
+            'qualityLevel': quality_level,
+            'totalLanguages': total_languages
+        },
+        'projects': {
+            'top': top_projects,
+            'new': new_projects
+        },
+        'recentWorks': recent_works
     }
 
 def analyze_single_repo(name, content):
@@ -389,13 +535,14 @@ if __name__ == '__main__':
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python analyze_github.py <github_dump.txt>")
+        print("Usage: python analyze_github.py <github_dump.txt> [output_dir]")
         sys.exit(1)
     
     # input_file = sys.argv[1]
     
     # received as str now, so convert back to path
     input_file = Path(sys.argv[1])
+    output_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path('.')
 
     # Read the GitHub dump
     with open(input_file, 'r', encoding='utf-8', errors='ignore') as f:
@@ -405,14 +552,16 @@ if __name__ == '__main__':
     filtered_data, translated_data = analyze_github_dump(text)
     
     # Save filtered.json
-    with open('filtered.json', 'w', encoding='utf-8') as f:
+    filtered_output = output_dir / 'filtered.json'
+    with open(filtered_output, 'w', encoding='utf-8') as f:
         json.dump(filtered_data, f, indent=2)
-    print(f"Created filtered.json with {len(filtered_data['repositories'])} repositories")
+    print(f"Created {filtered_output} with {len(filtered_data['repositories'])} repositories")
     
-    # Save translated.json
-    with open('translated.json', 'w', encoding='utf-8') as f:
+    # Save translated.json (will be overwritten by translation.py, but keep for now)
+    translated_output = output_dir / 'translated.json'
+    with open(translated_output, 'w', encoding='utf-8') as f:
         json.dump(translated_data, f, indent=2)
-    print(f"Created translated.json")
+    print(f"Created {translated_output}")
     print(f"\nDeveloper Profile Summary:")
     print(f"  Top Languages: {list(translated_data['languages'].keys())[:3]}")
     print(f"  Primary Skills: {list(translated_data['skills'].keys())}")

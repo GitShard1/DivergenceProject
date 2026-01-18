@@ -1,250 +1,52 @@
 {
   "repositories": [
     {
-      "name": "GuitarPedal",
+      "name": "AudioNoise",
       "languages": {
-        "Markdown": 3,
-        "HTML": 5
+        "Python": 2,
+        "Markdown": 1
       },
       "libraries": {
-        "the": 15,
-        "that": 2,
-        "Tayda": 2,
-        "Mouser": 2,
-        "kits": 1,
-        "Amazon": 1,
-        "top": 1,
-        "center": 1,
-        "bottom": 1
+        "matplotlib": 4,
+        "the": 2,
+        "numpy": 1,
+        "RangeSlider": 1,
+        "argparse": 1,
+        "Toolbar": 1
       },
       "frameworks": [],
       "commits": [],
-      "size_kb": 56.67,
+      "size_kb": 53.17,
       "file_types": {
-        "h": 51,
-        "c": 11,
-        "com": 10,
+        "h": 58,
+        "slider": 39,
+        "ax": 37,
+        "raw": 29,
+        "rate": 21,
+        "5": 18,
+        "navigating": 15,
+        "0f": 14,
+        "0": 14,
+        "eventson": 12,
         "cos": 10,
-        "png": 9,
-        "5mm": 9,
-        "5": 9,
+        "25": 10,
+        "1": 9,
+        "fig": 8,
         "sin": 7,
-        "0": 7,
-        "1": 6,
-        "taydaelectronics": 5,
-        "html": 5,
-        "lfo": 5,
-        "1mm": 4,
-        "2": 4,
-        "step": 4,
-        "coeff": 4,
-        "md": 3,
-        "6mm": 3,
-        "75": 3
+        "3": 7,
+        "o": 7,
+        "canvas": 7,
+        "key": 7,
+        "c": 5
       },
-      "test_coverage": 0.0
-    },
-    {
-      "name": "1590A",
-      "languages": {
-        "Markdown": 2
-      },
-      "libraries": {
-        "Gen": 2,
-        "scratch": 1,
-        "mine": 1,
-        "the": 1,
-        "Tayda": 1,
-        "kits": 1,
-        "Mouser": 1,
-        "Amazon": 1
-      },
-      "frameworks": [],
-      "commits": [],
-      "size_kb": 7.72,
-      "file_types": {
-        "md": 2,
-        "5v": 2,
-        "com": 1,
-        "65mm": 1,
-        "5mm": 1,
-        "1uf": 1
-      },
-      "test_coverage": 0.0
-    },
-    {
-      "name": "libdc-for-dirk",
-      "languages": {
-        "HTML": 4,
-        "CSS": 1
-      },
-      "libraries": {
-        "the": 40,
-        "surface": 3,
-        "text": 2,
-        "vsnprintf": 2,
-        "file": 1,
-        "template": 1,
-        "air": 1,
-        "model": 1,
-        "config": 1,
-        "inside": 1,
-        "src": 1,
-        "dc_usbhid_read": 1,
-        "several": 1
-      },
-      "frameworks": [
-        "Git"
-      ],
-      "commits": [],
-      "size_kb": 1483.46,
-      "file_types": {
-        "h": 1324,
-        "0": 326,
-        "c": 211,
-        "1": 195,
-        "event": 153,
-        "type": 146,
-        "context": 99,
-        "time": 90,
-        "deco": 75,
-        "depth": 74,
-        "size": 59,
-        "current": 57,
-        "maximum": 50,
-        "serial": 48,
-        "gasmix": 43,
-        "layout": 43,
-        "version": 40,
-        "value": 38,
-        "3": 37,
-        "model": 37
-      },
-      "test_coverage": 0.0
-    },
-    {
-      "name": "GuitarPedal",
-      "languages": {
-        "Markdown": 3,
-        "HTML": 5
-      },
-      "libraries": {
-        "the": 15,
-        "that": 2,
-        "Tayda": 2,
-        "Mouser": 2,
-        "kits": 1,
-        "Amazon": 1,
-        "top": 1,
-        "center": 1,
-        "bottom": 1
-      },
-      "frameworks": [],
-      "commits": [],
-      "size_kb": 56.67,
-      "file_types": {
-        "h": 51,
-        "c": 11,
-        "com": 10,
-        "cos": 10,
-        "png": 9,
-        "5mm": 9,
-        "5": 9,
-        "sin": 7,
-        "0": 7,
-        "1": 6,
-        "taydaelectronics": 5,
-        "html": 5,
-        "lfo": 5,
-        "1mm": 4,
-        "2": 4,
-        "step": 4,
-        "coeff": 4,
-        "md": 3,
-        "6mm": 3,
-        "75": 3
-      },
-      "test_coverage": 0.0
-    },
-    {
-      "name": "1590A",
-      "languages": {
-        "Markdown": 2
-      },
-      "libraries": {
-        "Gen": 2,
-        "scratch": 1,
-        "mine": 1,
-        "the": 1,
-        "Tayda": 1,
-        "kits": 1,
-        "Mouser": 1,
-        "Amazon": 1
-      },
-      "frameworks": [],
-      "commits": [],
-      "size_kb": 7.72,
-      "file_types": {
-        "md": 2,
-        "5v": 2,
-        "com": 1,
-        "65mm": 1,
-        "5mm": 1,
-        "1uf": 1
-      },
-      "test_coverage": 0.0
-    },
-    {
-      "name": "libdc-for-dirk",
-      "languages": {
-        "HTML": 4,
-        "CSS": 1
-      },
-      "libraries": {
-        "the": 40,
-        "surface": 3,
-        "text": 2,
-        "vsnprintf": 2,
-        "file": 1,
-        "template": 1,
-        "air": 1,
-        "model": 1,
-        "config": 1,
-        "inside": 1,
-        "src": 1,
-        "dc_usbhid_read": 1,
-        "several": 1
-      },
-      "frameworks": [
-        "Git"
-      ],
-      "commits": [],
-      "size_kb": 1483.46,
-      "file_types": {
-        "h": 1324,
-        "0": 326,
-        "c": 211,
-        "1": 195,
-        "event": 153,
-        "type": 146,
-        "context": 99,
-        "time": 90,
-        "deco": 75,
-        "depth": 74,
-        "size": 59,
-        "current": 57,
-        "maximum": 50,
-        "serial": 48,
-        "gasmix": 43,
-        "layout": 43,
-        "version": 40,
-        "value": 38,
-        "3": 37,
-        "model": 37
-      },
-      "test_coverage": 0.0
+      "test_coverage": 100
     }
   ],
   "total_commits": 0,
-  "commit_dates": []
+  "commit_dates": [],
+  "statsHome": {
+    "totalProjects": 1,
+    "totalRating": 6,
+    "totalLanguages": 2
+  }
 }

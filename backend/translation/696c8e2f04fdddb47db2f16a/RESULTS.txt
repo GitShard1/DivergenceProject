@@ -1,0 +1,2446 @@
+GitHub Repositories Dump
+User: GitShard1
+================================================================================
+
+
+================================================================================
+REPOSITORY: TerrariaRainSong_Hackathon
+================================================================================
+
+
+================================================================================
+FILE: code.js
+================================================================================
+
+const centerimgdiv = document.getElementById("centerimgdiv");
+const instructionText = document.getElementById("instruction-text");
+const whiteDot = document.getElementById("white-dot");
+const ring = document.getElementById("ring");
+const mouseText = document.getElementById("mousetxt");
+const mouseTextDiv = document.getElementById("mousetxtdiv");
+
+const soundsAndDistances = {
+    "G major": { sound: new Audio("Assets/sounds/GMajor.wav"), minDist: 0, maxDist: 24, text: "G major (0-24px)" },
+    "A minor": { sound: new Audio("Assets/sounds/AMinor.wav"), minDist: 24, maxDist: 56, text: "A minor (0-56px)" },
+    "B minor": { sound: new Audio("Assets/sounds/Bminor.wav"), minDist: 56, maxDist: 88, text: "B minor (56-88px)" },
+    "C major": { sound: new Audio("Assets/sounds/Cmajor.wav"), minDist: 88, maxDist: 120, text: "C major (88-120px)" },
+    "D major": { sound: new Audio("Assets/sounds/Dmajor.wav"), minDist: 120, maxDist: 152, text: "D major (120-152px)" },
+    "E minor": { sound: new Audio("Assets/sounds/Eminor.wav"), minDist: 152, maxDist: 99999, text: "E major (152px to end)" }
+};
+
+const windowWidth = window.innerWidth;
+
+let xDist
+let yDist
+let finaldist
+let currentnote
+let currentnotetext
+document.addEventListener("mousemove", function (event) { 
+    const centerimgdivRect = centerimgdiv.getBoundingClientRect();
+    xDist = event.clientX - (centerimgdivRect.left + centerimgdivRect.width / 2);
+    yDist = event.clientY - (centerimgdivRect.top + centerimgdivRect.height / 2);
+    finaldist = Math.sqrt(xDist * xDist + yDist * yDist);
+    //ratio
+    finaldist/=((windowWidth*2)/1020);
+
+    for (const [key, value] of Object.entries(soundsAndDistances)) {
+        if (finaldist > value.minDist && finaldist <= value.maxDist) {
+            currentnote = key;
+            currentnotetext = value.text;
+            break;
+        }
+    }
+
+    mouseText.textContent = currentnote;
+    mouseTextDiv.style.left = `${event.clientX + 5}px`;
+    mouseTextDiv.style.top = `${event.clientY + 10}px`;
+
+    const dotradius = 8;
+    whiteDot.style.left = `${event.clientX}px`;
+    whiteDot.style.top = `${event.clientY}px`;
+
+});
+
+document.addEventListener("click", function (event) {
+    soundsAndDistances[currentnote].sound.currentTime = 0;
+    soundsAndDistances[currentnote].sound.volume = 0.1;
+    soundsAndDistances[currentnote].sound.play();
+    instructionText.textContent = currentnotetext;
+
+    let ring = document.createElement("div");
+    ring.id = "ring"
+    ring.style.left = event.clientX + "px";
+    ring.style.top = event.clientY + "px";
+    document.body.appendChild(ring);
+
+    let size = 0;
+    let opacity = 0.7;
+    function animate() {
+        size += 10;
+        opacity -= 0.02;
+
+        ring.style.width = size + "px";
+        ring.style.height = size + "px";
+        ring.style.opacity = opacity;
+
+        if (opacity > 0) {
+            requestAnimationFrame(animate);
+        } else {
+            ring.remove();
+        }
+    }
+
+    requestAnimationFrame(animate);
+
+},true);
+
+
+
+================================================================================
+FILE: index.html
+================================================================================
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>
+        Rain Song Hackathon
+    </title>
+</head>
+
+<body>
+    <div class="image-container" id="centerimgdiv">
+        <img src="Assets/img/RainSongGuitar.png" alt="Rain Song Guitar">
+    </div>
+ 
+    <div>
+        <p id="instruction-text">Click on a point on this screen!</p>
+    </div>
+
+    <div id="white-dot"></div>
+    <div id="mousetxtdiv">
+        <p id="mousetxt"></p>
+    </div>
+
+ </body>
+
+<script src="code.js"></script>
+<link rel="stylesheet" href="style.css">
+
+</html>
+
+
+
+================================================================================
+FILE: README.md
+================================================================================
+
+Project for a hackathon I made. Features are very limited due to school time constraints
+
+
+
+================================================================================
+FILE: style.css
+================================================================================
+
+body {
+    background-color: #403f3f;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#centerimgdiv {
+    width: 10%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 1;
+}
+
+p {
+    color: #dcdcdc;
+    margin-top: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+
+#white-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    display: block;
+}
+
+#ring {
+    position: absolute;
+    border: 2px solid white;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.7;
+    transform: translate(-50%, -50%);
+}
+
+#mousetxtdiv {
+    position: absolute;
+    display: block;
+}
+
+
+================================================================================
+REPOSITORY: vis.js
+================================================================================
+
+
+================================================================================
+FILE: index.html
+================================================================================
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js"></script>
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+        <link rel="stylesheet" href="./vis.css">
+        <link href='https://fonts.googleapis.com/css?family=Raleway:300,700' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        <div id="vig"></div>
+        <div class="content">
+            <canvas id="canvas" style="display: block;"></canvas>
+            <div id="songinfo" class="front">
+                <div id="artist" class="front"></div>
+                <div id="title" class="front"></div>
+            </div>
+            <div class="ayylmao"></div>
+            <div id="cover">
+                <div><img src="https://github.com/Shardrox/vis.js/blob/gh-pages/img/mcat.svg" class="mcat"></div>
+            </div>
+            <div id="spectrum_preloader"><div></div></div>
+        </div>
+
+        <div class="partsbg"></div>
+        <div style="" class="mvbg"></div>
+
+        <div id="volume-info" class="front">Volume: <span id="volume-value"></span></div>
+		<div id="loading-info" class="front">Now Loading<br><span id="loading-value"></span></div>
+        <div id="pause-info" class="hide front">Song Data Download (Press O): <span id="download-value"><br>Press P to Pause</div>
+        <div id="github" class="hide front"><a href="https://github.com/caseif/vis.js" target="_blank">Original GitHub</a><br><a href="https://github.com/Shardrox/vis.js" target="_blank">Modified GitHub</a></div>
+
+        <!-- Config script -->
+        <script type="text/javascript" src="./js/util/config.js"></script>
+
+        <!-- Utility scripts -->
+        <script type="text/javascript" src="./js/util/download.js"></script>
+        <script type="text/javascript" src="./js/util/helper/net/async_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/net/cookie_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/net/url_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/color_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/genre_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/misc_helper.js"></script>
+        <script type="text/javascript" src="./js/util/helper/random_helper.js"></script>
+
+        <!-- Abstract models -->
+        <script type="text/javascript" src="./js/model/song.js"></script>
+
+        <!-- Algorithmic spectrum analysis/transformation scripts -->
+        <script type="text/javascript" src="./js/analysis/spectrum_algorithms.js"></script>
+
+        <!-- User IO scripts -->
+        <script type="text/javascript" src="./js/io/keyhandler.js"></script>
+        <script type="text/javascript" src="./js/io/volume.js"></script>
+
+        <!-- Visual/GUI scripts -->
+        <script type="text/javascript" src="./js/visual/gui.js"></script>
+        <script type="text/javascript" src="./js/visual/spectrum.js"></script>
+
+        <!-- AudioNode scripts -->
+        <script type="text/javascript" src="./js/audio/node_helper.js"></script>
+        <script type="text/javascript" src="./js/audio/loader.js"></script>
+
+        <!-- Main script -->
+        <script type="text/javascript" src="./js/vis.js"></script>
+
+        <!-- WebGL scripts -->
+        <script type="text/javascript" src="./js/visual/gl/geom_util.js"></script>
+        <script type="text/javascript" src="./js/visual/gl/scene.js"></script>
+        <script type="text/javascript" src="./js/visual/gl/geometry.js"></script>
+        <script type="text/javascript" src="./js/visual/gl/light.js"></script>
+        <script type="text/javascript" src="./js/visual/gl/render.js"></script>
+    </body>
+</html>
+
+
+
+================================================================================
+FILE: README.MD
+================================================================================
+
+**ATTENTION: The new version can be found [here](https://github.com/TheNexusAvenger/Monstercat-Audio-Spectrum-Visualizer). This will not be getting updates as the new one is a full rewrite.**
+
+NOTE: This was modified for personal use, however can be used for getting data of audio files.
+
+Viewing:
+<br>(Development) https://rawgit.com/Shardrox/vis.js/gh-pages/index.html
+<br>(Production) https://cdn.rawgit.com/Shardrox/vis.js/gh-pages/index.html
+
+# vis.js (TheNexusAvenger's Modifications)
+
+vis.js is a modifcation of the [version owned by caseif](https://github.com/caseif/vis.js) for the use of getting sound data for use on ROBLOX. This is a more speicalized version, and you should refer to the original if you are looking at this one.
+
+## Re-using for yourself
+
+If you want to reproduce these files, do the following:
+<br>1. Create a fork of this repositionary
+<br>2. Go into /index.html, replace both cases of TheNexusAvenger (lines 21 and 32) with your GitHub username
+<br>3. Go into /js/util/config.js and replace TheNexusAvenger (line 8) with your GitHub username
+<br>4. Go into /README.MD and replace both case of TheNexusAvenger in the links(lines 4 and 5) with your GitHub username
+<br>5. Keep the reference to the original under caseif. I just modified this, I didn't create it.
+
+Note: This is meant to work with rawgit.com. You may need to modify teh links further in steps 2-4 to work with your domain or changed repositionary name.
+
+## Song Data Exporting
+The output of this modification is a ModuleScript in a .rbxmx file, which returns a table with each frame sample and an ordered set of the positions of the bars (in practice, the max they reach is ~240-250). This is meant to be directly inserted into Roblox Studio. If you need to change this to another format, the file is created in /js/audio.loader.js, /js/audio/node_helper.js, and /js/visual.js.
+
+(Following was not modified as it is still relevant)
+## Browser Support
+
+:heavy_check_mark: Google Chrome
+
+:heavy_check_mark: Microsoft Edge (minor issues but nothing huge)
+
+:warning: Mozilla Firefox (works but sometimes freezes the browser)
+
+:warning: Safari (Safari caps `fftSize` at 2048, resulting in odd/glitchy spectrum behavior)
+
+:x: Microsoft Internet Explorer (no support for the AudioNode API)
+
+## Common Issues
+
+First and foremost, verify that you're using a supported browser as per the above section.
+
+**Spectrum is jittery/choppy**
+
+If the spectrum is jittery even though the framerate isn't dropping, you may need to reconfigure your system's audio settings. vis.js functions best at a sample rate of 44.1kHz. Higher rates may affect the visual quality of the spectrum.
+
+**"Could not get audio context! (Are you using IE?)"**
+
+The audio node could not be initialized because it is not supported by your browser. This is seen most commonly in Internet Explorer, which does not support the Audio API.
+
+**"Could not set optimal fftSize! This may look a bit weird..."**
+
+The audio node was not initialized properly. This might be resolved by using a different browser, although it may be a restriction caused by your system.
+
+**404 in console on local install when loading audio**
+
+vis.js needs a reverse proxy to be configured on the webserver in order to function due to Javascript restrictions. More specifically, `vis.mydomain.com/content/` should point to `docs.google.com`.
+
+## Footnote
+
+See the visualizer in action [here](http://vis.caseif.net/).
+
+Based on [schisma/vis](https://github.com/schisma/vis).
+
+
+
+================================================================================
+FILE: songs.csv
+================================================================================
+
+# key|artist|title|genreColor|localingInSongsFolder
+# Newlines are denoted with <br>
+# Prefixing a character with ^ will force it to be lowercase
+thevine|Tristam|The Vine|Drumstep|Tristam_TheVine.mp3
+champions|Astronaut|Champions<br>(feat. Harry Brooks Jnr)|House|Astronaut_Champions.mp3
+rainstephenwalkingremix|Astronaut|Rain (Stephen Walking Remix)|Glitch Hop|Astronaut_RainStephenWalkingRemix.mp3
+wuxia|Mitchell Claxton|Wuxia|Trance|MitchellClaxton_Wuxia.mp3
+
+
+
+================================================================================
+FILE: vis.css
+================================================================================
+
+@import url('https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:700,300');
+
+@font-face {
+    font-family: Gotham-Book;
+    src: url(fonts/Gotham-Book.otf);
+}
+
+@font-face {
+    font-family: Gotham-Medium;
+    src: url(fonts/Gotham-Medium.otf);
+}
+
+html {
+    height: 100%;
+    font-family: sans-serif;
+    background-color: #111;
+}
+
+body {
+    margin:0;
+}
+
+#loading {
+    color: #FFF;
+    position: absolute;
+}
+
+#canvas {
+    z-index: 996;
+}
+
+#volume-info {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    color: #FFF;
+    display: none;
+}
+
+#loading-info {
+	top: 12px;
+	color: white;
+	position: absolute;
+	width: 600px;
+	left: 50%;
+	margin-left: -300px;
+	text-align: center;
+	animation: pulse-fade 2s linear infinite;
+	-webkit-animation: pulse-fade 2s linear infinite;
+}
+
+#loading-value {
+	display: none;
+}
+
+@keyframes pulse-fade {
+	0% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+#pause-info {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    color: #FFF;
+    display: none;
+}
+
+#github {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+}
+
+#github a {
+    color: #FFF;
+    text-decoration: none;
+}
+
+.content {
+    margin: 196px auto 0 auto;
+    position: relative;
+    width: 1568px;
+}
+
+.content #songinfo {
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+.content #artist {
+    color: #FFF;
+    display: block;
+    font-family: 'Gotham-Medium', 'Raleway', Lato, sans-serif;
+    font-weight: 700;
+    font-size: 102px;
+    line-height: 112%;
+    letter-spacing: -5.3px;
+}
+
+.content #title {
+    color: #FFF;
+    display: block;
+    font-family: 'Gotham-Book', 'Raleway', Lato, sans-serif;
+    font-weight: 400;
+    margin-top: -7px;
+    font-size: 56px;
+    line-height: 87%;
+    letter-spacing: -4px;
+}
+
+.content #title a {
+    color: white;
+    text-decoration: none;
+}
+
+.content #title a:hover {
+    text-decoration: underline;
+}
+
+#particles {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: -99;
+}
+
+.kitty {
+    position: absolute;
+}
+
+#vig {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: inset 0 0 20em 7em rgba(0,0,0,0.5);
+    z-index: 997;
+}
+
+.front {
+    z-index: 9999;
+}
+
+#preloader {
+    position: fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background-color: rgba(18,18,17,0.95);
+    z-index:998;
+}
+
+#status {
+    width:200px;
+    height:150px;
+    position:absolute;
+    left:50%;
+    top:50%;
+    background-image:url(./img/status.gif);
+    background-repeat:no-repeat;
+    background-position:center;
+    margin:-100px 0 0 -100px;
+}
+
+.cattext{
+    color: #FFF; 
+    text-align: center; 
+    padding-bottom: 75px;
+}
+
+video#bgvid {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -100;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+    background-size: cover;
+    -webkit-filter: brightness(85%);
+}
+
+.mvbg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -100;
+}
+
+
+/*
+ * ANIMATIONS
+ */
+
+.partsbg{
+    visibility:hidden;
+    position:relative;
+    z-index:-2;
+}
+
+.playing .partsbg{
+    visibility:visible;
+    animation:partsbgIn 10s ease-out both;
+}
+
+@keyframes partsbgIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+/*.content{
+    visibility:hidden;
+}
+
+.playing .content{
+    visibility:visible;
+    animation:contentgIn 1s ease-out both;
+}
+
+@keyframes contentIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}*/
+
+.content #artist{
+    overflow:hidden;
+    visibility:hidden;
+    white-space:nowrap;
+}
+
+.playing .content #artist{
+    visibility:visible;
+    animation:textIn .35s linear both 0.7s;
+}
+
+.content #title span{
+    overflow:hidden;
+    visibility:hidden;
+    white-space:nowrap;
+    display:inline-block;
+}
+
+.playing .content #title span{
+    visibility:visible;
+    animation:textIn .35s linear both 0.8s;
+}
+
+.playing .content #title span:nth-child(2){
+    animation-delay:0.9s;
+}
+
+.playing .content #title span:nth-child(3){
+    animation-delay:1.0s;
+}
+
+.playing .content #title span:nth-child(4){
+    animation-delay:1.1s;
+}
+
+@keyframes textIn{
+    from{max-width:0;}
+    to{max-width:100%;}
+}
+
+#cover{
+    width: 191px;
+    height: 191px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index:-1;
+    perspective: 1910px;
+    perspective-origin: center;
+}
+
+#cover div{
+    width: 100%;
+    height: 100%;
+    background: #C2C1C2;
+    visibility:hidden;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 6px 0;
+    position:relative;
+}
+
+#cover div img{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#cover div img.mcat{
+    width: 75%;
+    height: 75%;
+    position: absolute;
+    top: 12.5%;
+    left: 12.5%;
+}
+
+.playing #cover div{
+    visibility:visible;
+    animation:coverIn .250s linear both .350s;
+}
+
+@keyframes coverIn{
+    from{transform: rotateY(90deg);}
+    to{transform: rotateY(0deg);}
+}
+
+#preloader{ /* Only to show spectrum_preloader */
+    display:none !important;
+}
+
+#spectrum_preloader{
+    position: absolute;
+    top: 352px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    overflow: hidden;
+}
+
+#spectrum_preloader div{
+    position: absolute;
+    background: #C2C1C2;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 6px 0;
+    width: 100%;
+    height: 100%;
+    animation: indeterminate1 2s infinite linear;
+}
+
+@keyframes indeterminate1 {
+  0% {
+    left: 0%;
+    width: 0%;
+  }
+  50% {
+    left: 25%;
+    width: 75%;
+  }
+  75% {
+    left: 100%;
+    width: 0%;
+  }
+  100% {
+    left: 100%;
+    width: 0%;
+  }
+}
+
+
+
+================================================================================
+FILE: js\vis.js
+================================================================================
+
+if (!window.AudioContext) {
+    if (!window.webkitAudioContext) {
+        alert('Could not get audio context! (Are you using IE?)');
+    }
+    window.AudioContext = window.webkitAudioContext;
+}
+
+var color;
+
+var spectrumWidth = 1568 * resRatio;
+spectrumSpacing = 7 * resRatio;
+var barWidth = (spectrumWidth + spectrumSpacing) / spectrumSize - spectrumSpacing;
+spectrumWidth = (barWidth + spectrumSpacing) * spectrumSize - spectrumSpacing;
+
+var spectrumHeight = spectrumWidth / spectrumDimensionScalar;
+var marginDecay = 1.6; // I admittedly forget how this works but it probably shouldn't be changed from 1.6
+// margin weighting follows a polynomial slope passing through (0, minMarginWeight) and (marginSize, 1)
+var headMarginSlope = (1 - minMarginWeight) / Math.pow(headMargin, marginDecay);
+var tailMarginSlope = (1 - minMarginWeight) / Math.pow(tailMargin, marginDecay);
+
+var velMult = 0;
+var particleSize = minParticleSize;
+
+var begun = false;
+var ended = false;
+var isPlaying = false;
+var bufferInterval = 1024;
+var started = 0;
+var currentTime = 0;
+var minProcessPeriod = 18; // ms between calls to the process function
+
+var lastMouseMove = Date.now();
+var lastVolumeChange = Date.now();
+var textHidden = false;
+var volumeHidden = false;
+
+updateCanvas();
+
+function centerContent() {
+    resRatio = $(window).width() / 1920;
+
+    $('.content').css({
+        width: (1568 * resRatio) + "px",
+        marginTop: (196 * resRatio) + "px"
+    });
+    $('#canvas').attr("width", 1568 * resRatio);
+}
+
+$(window).resize(() => { centerContent() });
+centerContent();
+
+$('#artist').css('font-size', $('#artist').css('font-size').replace('px', '') * resRatio + 'px');
+$('#title').css('font-size', $('#title').css('font-size').replace('px', '') * resRatio + 'px');
+loadSong();
+setupAudioNodes();
+var prefix = window.location.href.split('/')[0] + '//' + window.location.hostname;
+loadSound(baseURL + "/songs/" + song.getFileId());  // music file
+$('#songinfo').css('padding-top', (blockSize - $('#songinfo').height()) / 2);
+centerContent();
+initSpectrumHandler();
+
+if (song.getGenre() == 'ayy lmao') {
+    $('#cover div').append('<img class="kitty" src="./img/cat.gif" alt="ayy lmao">');
+}
+
+if (song.getGenre() == 'Mirai Sekai') {
+    $('.partsbg').hide();
+    $('#vig').hide();
+    $('.content').css('textShadow','0px 0px 20px rgba(0, 0, 0, 0.9)');
+    $('.mvbg').html('<video autoplay loop id="bgvid"><source src="'
+            + prefix + '/content/uc?export=download&id=0B8_nDMQp-qqCU0ZmcHNfR1pwZ0E" type="video/webm"></video>');
+} else if (song.getGenre() == 'Pink Cloud') {
+    var arr = ['7YBEo6D', 'Bbpq19Q', '6MPcxXC'];
+    $('.mvbg').html('<img src="https://i.imgur.com/' + arr[Math.floor(Math.random() * arr.length)]
+            + '.jpg" width="100%">');
+}
+
+$('html').mousemove(event => {
+    if (textHidden) {
+        $('.hide').stop(false, true);
+        $('.hide').show();
+        textHidden = false;
+    }
+    lastMouseMove = Date.now();
+});
+
+
+
+================================================================================
+FILE: js\analysis\spectrum_algorithms.js
+================================================================================
+
+// mostly for debugging purposes
+function smooth(array) {
+    return savitskyGolaySmooth(array);
+}
+
+/**
+ * Applies a Savitsky-Golay smoothing algorithm to the given array.
+ *
+ * See {@link http://www.wire.tu-bs.de/OLDWEB/mameyer/cmr/savgol.pdf} for more
+ * info.
+ *
+ * @param array The array to apply the algorithm to
+ *
+ * @return The smoothed array
+ */
+function savitskyGolaySmooth(array) {
+    var lastArray = array;
+    for (var pass = 0; pass < smoothingPasses; pass++) {
+        var sidePoints = Math.floor(smoothingPoints / 2); // our window is centered so this is both nL and nR
+        var cn = 1 / (2 * sidePoints + 1); // constant
+        var newArr = [];
+        for (var i = 0; i < sidePoints; i++) {
+            newArr[i] = lastArray[i];
+            newArr[lastArray.length - i - 1] = lastArray[lastArray.length - i - 1];
+        }
+        for (var i = sidePoints; i < lastArray.length - sidePoints; i++) {
+            var sum = 0;
+            for (var n = -sidePoints; n <= sidePoints; n++) {
+                sum += cn * lastArray[i + n] + n;
+            }
+            newArr[i] = sum;
+        }
+        lastArray = newArr;
+    }
+    return newArr;
+}
+
+function transformToVisualBins(array) {
+    var newArray = new Uint8Array(spectrumSize);
+    for (var i = 0; i < spectrumSize; i++) {
+        var bin = Math.pow(i / spectrumSize, spectrumScale) * (spectrumEnd - spectrumStart) + spectrumStart;
+        newArray[i] = array[Math.floor(bin) + spectrumStart] * (bin % 1)
+                + array[Math.floor(bin + 1) + spectrumStart] * (1 - (bin % 1))
+    }
+    return newArray;
+}
+
+function getTransformedSpectrum(array) {
+    var newArr = normalizeAmplitude(array);
+    newArr = averageTransform(newArr);
+    newArr = tailTransform(newArr);
+    newArr = smooth(newArr);
+    newArr = exponentialTransform(newArr);
+    return newArr;
+}
+
+function normalizeAmplitude(array) {
+    var values = [];
+    for (var i = 0; i < spectrumSize; i++) {
+        if (begun) {
+            values[i] = array[i] / 255 * spectrumHeight;
+        } else {
+            value = 1;
+        }
+    }
+    return values;
+}
+
+function averageTransform(array) {
+    var values = [];
+    for (var i = 0; i < spectrumSize; i++) {
+        if (i == 0) {
+            var value = array[i];
+        }
+        else if (i == spectrumSize - 1) {
+            var value = (array[i - 1] + array[i]) / 2;
+        }
+        else {
+            var value = (array[i - 1] + array[i] + array[i + 1]) / 3;
+        }
+        value = Math.min(value + 1, spectrumHeight);
+
+        values[i] = value;
+    }
+
+    return values;
+}
+
+function tailTransform(array) {
+    var values = [];
+    for (var i = 0; i < spectrumSize; i++) {
+        var value = array[i];
+        if (i < headMargin) {
+            value *= headMarginSlope * Math.pow(i + 1, marginDecay) + minMarginWeight;
+        } else if (spectrumSize - i <= tailMargin) {
+            value *= tailMarginSlope * Math.pow(spectrumSize - i, marginDecay) + minMarginWeight;
+        }
+        values[i] = value;
+    }
+    return values;
+}
+
+function exponentialTransform(array) {
+    var newArr = [];
+    for (var i = 0; i < array.length; i++) {
+        var exp = (spectrumMaxExponent - spectrumMinExponent) * (1 - Math.pow(i / spectrumSize, spectrumExponentScale)) + spectrumMinExponent;
+        newArr[i] = Math.max(Math.pow(array[i] / spectrumHeight, exp) * spectrumHeight, 1);
+    }
+    return newArr;
+}
+
+// top secret bleeding-edge shit in here
+function experimentalTransform(array) {
+    var resistance = 3; // magic constant
+    var newArr = [];
+    for (var i = 0; i < array.length; i++) {
+        var sum = 0;
+        var divisor = 0;
+        for (var j = 0; j < array.length; j++) {
+            var dist = Math.abs(i - j);
+            var weight = 1 / Math.pow(2, dist);
+            if (weight == 1) weight = resistance;
+            sum += array[j] * weight;
+            divisor += weight;
+        }
+        newArr[i] = sum / divisor;
+    }
+    return newArr;
+}
+
+
+================================================================================
+FILE: js\audio\loader.js
+================================================================================
+
+var song;
+var compiledSongData = "";
+
+function loadSong() {
+    compiledSongData = "return {";
+    var songs = [];
+    var count = 0;
+    prefix = window.location.href.split('/')[0] + '//' + window.location.hostname
+            + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+    var path = prefix + '/songs.csv'; 
+    $.ajax({
+        url:        path,
+        success:    csv => {
+                        var lines = csv.split('\n');
+                        lines.forEach(line => {
+                            try {
+                                var s = new Song(line);
+                                songs[s.getId()] = s;
+                                count = count + 1;
+                            } catch (ignored) {
+                                // not a song (useless statement to keep JSLint happy)
+                            }
+                        });
+                        songs.splice('undefined', 1);
+                    },
+        async:        false
+    });
+    var keys = Object.keys(songs);
+    var subArray = [];
+    var i = 0;
+    if (songName !== undefined) {
+        song = songs[songName.toLowerCase()];
+    } else if (subgenreName !== undefined) {
+        keys.forEach(key => {
+            var track = songs[key];
+            if (track.getGenre().toLowerCase() === subgenreName.toLowerCase()) {
+                subArray[i] = track;
+                ++i;
+            }
+        });
+        song = subArray[Math.floor(Math.random() * subArray.length)];
+    } else if (genreName !== undefined) {
+        keys.forEach(key => {
+            var track = songs[key];
+            if ((subgenres[track.getGenre()] !== undefined && subgenres[track.getGenre()].toLowerCase() === genreName.toLowerCase())
+                    || (track.getGenre().toLowerCase().indexOf(genreName.toLowerCase()) !== -1)) {
+                subArray[i] = track;
+                ++i;
+            }
+        });
+        song = subArray[Math.floor(Math.random() * subArray.length)];
+    } else if (artistName !== undefined) {
+        keys.forEach(key => {
+            var track = songs[key];
+            if (track.getArtist().toLowerCase().replace(/\^/g, '') === artistName.toLowerCase()) {
+                subArray[i] = track;
+                ++i;
+            }
+        });
+        song = subArray[Math.floor(Math.random() * subArray.length)];
+    } else {
+        var key = keys[Math.floor(Math.random() * count)];
+        song = songs[key];
+    }
+    initGui(song);
+}
+
+
+
+================================================================================
+FILE: js\audio\node_helper.js
+================================================================================
+
+var context = new AudioContext();
+var gainNode;
+var audioBuffer;
+var bufferSource;
+var analyzer;
+var scriptProcessor;
+
+function setupAudioNodes() {
+    bufferSource = context.createBufferSource();
+    setOnEnded();
+    bufferSource.connect(context.destination);
+
+    gainNode = context.createGain();
+    gainNode.gain.value = 0;
+    bufferSource.connect(gainNode);
+    gainNode.connect(context.destination);
+    var vol = getCookie('volume');
+    if (vol != null) {
+        gainNode.gain.value = vol;
+    }
+
+    scriptProcessor = context.createScriptProcessor(bufferInterval, 1, 1);
+    scriptProcessor.connect(context.destination);
+
+    analyzer = context.createAnalyser();
+    analyzer.connect(scriptProcessor);
+    analyzer.smoothingTimeConstant = temporalSmoothing;
+    analyzer.minDecibels = -100;
+    analyzer.maxDecibels = -33;
+    try {
+        analyzer.fftSize = maxFftSize; // ideal bin count
+        console.log('Using fftSize of ' + analyzer.fftSize + ' (woot!)');
+    } catch (ex) {
+        analyzer.fftSize = 2048; // this will work for most if not all systems
+        console.log('Using fftSize of ' + analyzer.fftSize);
+        alert('Could not set optimal fftSize! This may look a bit weird...');
+    }
+    bufferSource.connect(analyzer);
+}
+
+function playSound(buffer) {
+    bufferSource.buffer = buffer;
+    bufferSource.start(0);
+    $('#status').fadeOut(); // will first fade out the loading animation
+    $('#preloader').fadeOut('slow'); // will fade out the grey DIV that covers the website.
+    $("body").addClass("playing");
+    $('#spectrum_preloader').hide();
+	$('#loading-info').fadeOut(); // fades out the loading text
+    $('#download-value').html("Disabled<br>Press P to Pause");
+    isPlaying = true;
+    begun = true;
+    started = Date.now();
+}
+
+function setOnEnded() {
+    bufferSource.onended = () => {
+        if (started && isPlaying) {
+            if (downloadSongData == true) {
+            	compiledSongData  = '<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"> <External>null</External> <External>nil</External> <Item class="ModuleScript" referent="RBX040E8D154ACF48B48C3F54832CED08C8"><Properties> <Content name="LinkedSource"><null></null></Content> <string name="Name">ExportedSongData</string> <ProtectedString name="Source"><![CDATA[' + compiledSongData;
+        	compiledSongData  = compiledSongData  + "\n}";
+            	compiledSongData  = compiledSongData +  ']]></ProtectedString> </Properties> </Item> </roblox>';
+        	download(compiledSongData, "Encoded Song Data.rbxmx", "text/plain");
+            }
+            location.reload(); // refresh when the song ends
+        }
+    };
+}
+
+
+
+================================================================================
+FILE: js\io\keyhandler.js
+================================================================================
+
+var downloadSongData = false;
+
+$(document).keypress(event => {
+    if (event.which == KEY_P_UPPER || event.which == KEY_P_LOWER) {
+        if (started) {
+            if (isPlaying) {
+                bufferSource.stop();
+                currentTime += Date.now() - started;
+                velMult = 0;
+            } else {
+                var newSource = context.createBufferSource();
+                newSource.buffer = bufferSource.buffer;
+                bufferSource = newSource;
+                setOnEnded();
+                bufferSource.connect(analyzer);
+                bufferSource.connect(gainNode);
+                bufferSource.connect(context.destination);
+                bufferSource.start(0, currentTime / 1000);
+                started = Date.now();
+            }
+            isPlaying = !isPlaying;
+        }
+    } else if (event.which == KEY_O_UPPER || event.which == KEY_O_LOWER) {
+        if (started) {
+            if (downloadSongData != true) {
+                $('#download-value').html("Enabled<br>Press P to Pause");
+                downloadSongData = true;
+            } else {
+                $('#download-value').html("Disabled<br>Press P to Pause");
+                downloadSongData = false;
+            }
+        }
+    }
+});
+
+
+
+================================================================================
+FILE: js\io\volume.js
+================================================================================
+
+var KEY_UP = 38;
+var KEY_DOWN = 40;
+var KEY_P_UPPER = 80;
+var KEY_P_LOWER = 112;
+var KEY_O_UPPER = 79;
+var KEY_O_LOWER = 111;
+
+$(document).keydown(event => {
+    if (event.which == KEY_UP) {
+        gainNode.gain.value = Math.min(gainNode.gain.value + volumeStep, 0);
+        setCookie('volume', gainNode.gain.value);
+        
+    } else if (event.which == KEY_DOWN) {
+        gainNode.gain.value = Math.max(gainNode.gain.value - volumeStep, -1);
+        setCookie('volume', gainNode.gain.value);
+    }
+    else {
+        return;
+    }
+
+    if (volumeHidden) {
+        $('#volume-info').stop(false, true);
+        $('#volume-info').show();
+        volumeHidden = false;
+    }
+    $('#volume-value').html(Math.round((gainNode.gain.value + 1) * 100) + '%');
+    lastVolumeChange = Date.now();
+});
+
+
+
+================================================================================
+FILE: js\model\song.js
+================================================================================
+
+function Song(rawData) {
+    if (rawData != '' && !rawData.match('^#')) { // check it's not a comment or an empty line
+        var data = rawData.split('\|');
+        if (data.length < 5) {
+            throw 'Invalid song data';
+        }
+        this.id = data[0];
+        this.artist = data[1];
+        this.title = data[2];
+        this.genre = data[3];
+        this.file = data[4];
+    } else {
+        throw 'non-song';
+    }
+}
+
+Song.prototype.getId = function() {
+    return this.id;
+}
+
+Song.prototype.getArtist = function() {
+    return this.artist;
+}
+
+Song.prototype.getTitle = function() {
+    return this.title;
+}
+
+Song.prototype.getGenre = function() {
+    return this.genre;
+}
+
+Song.prototype.getFileId = function() {
+    return this.file;
+}
+
+
+
+================================================================================
+FILE: js\util\config.js
+================================================================================
+
+// NOTE: Not all config values may necessarily be changed by the user at
+// runtime. Some are mutated internally after intialization, meaning changing
+// them at runtime may not work as expected.
+
+/* *********************** */
+/* * Personal Additions  * */
+/* *********************** */
+var baseURL = "https://rawgit.com/Shardrox/vis.js/gh-pages";  //Base URL for requests for rawgit.
+var sampleRate = 30; //Frame rate of output. 60 is max for Roblox, but you can go higher/lower and may be hard to record
+var roundExportedNumbers = true; //If true, rounds the exported numbers. Uses less file space if true, but percision is lost.
+
+/* *********************** */
+/* * Audio node settings * */
+/* *********************** */
+var volumeStep = 0.05; // the step for each volume notch as a fraction of 1
+
+/* *************************** */
+/* * Basic spectrum settings * */
+/* *************************** */
+// BASIC ATTRIBUTES
+var spectrumSize = 63; // number of bars in the spectrum
+var spectrumDimensionScalar = 4.5; // the ratio of the spectrum width to its height
+var spectrumSpacing = 7; // the separation of each spectrum bar in pixels at width=1920
+var maxFftSize = 16384; // the preferred fftSize to use for the audio node (actual fftSize may be lower)
+// BASIC TRANSFORMATION
+var spectrumStart = 4; // the first bin rendered in the spectrum
+var spectrumEnd = 1200; // the last bin rendered in the spectrum
+var spectrumScale = 1.8; // the logarithmic scale to adjust spectrum values to
+// EXPONENTIAL TRANSFORMATION
+var spectrumMaxExponent = 5; // the max exponent to raise spectrum values to
+var spectrumMinExponent = 3; // the min exponent to raise spectrum values to
+var spectrumExponentScale = 2; // the scale for spectrum exponents
+// DROP SHADOW
+var spectrumShadowBlur = 6; // the blur radius of the spectrum's drop shadow
+var spectrumShadowOffsetX = 0; // the x-offset of the spectrum's drop shadow
+var spectrumShadowOffsetY = 0; // the y-offset of the spectrum's drop shadow
+
+/* ********************** */
+/* * Smoothing settings * */
+/* ********************** */
+var smoothingPoints = 3; // points to use for algorithmic smoothing. Must be an odd number.
+var smoothingPasses = 1; // number of smoothing passes to execute
+var temporalSmoothing = 0.25; // passed directly to the JS analyzer node
+
+/* ************************************ */
+/* * Spectrum margin dropoff settings * */
+/* ************************************ */
+var headMargin = 7; // the size of the head margin dropoff zone
+var tailMargin = 0; // the size of the tail margin dropoff zone
+var minMarginWeight = 0.6; // the minimum weight applied to bars in the dropoff zone
+
+/* *************************** */
+/* * Basic particle settings * */
+/* *************************** */
+// COUNT
+var baseParticleCount = 2000; // the number of particles at 1080p
+var fleckCount = 50; // total fleck count
+var bokehCount = 250; // total bokeh count
+// OPACITY
+var particleOpacity = 0.7; // opacity of primary particles
+var bokehOpacity = 0.5; // opacity of bokeh (raising this above 0.5 results in weird behavior)
+// SIZE
+var minParticleSize = 4; // the minimum size scalar for particle systems
+var maxParticleSize = 7; // the maximum size scalar for particle systems
+var particleSizeExponent = 2; // the exponent to apply during dynamic particle scaling (similar to spectrum exponents)
+// POSITIONING
+var yVelRange = 3; // the range for particle y-velocities
+var xPosBias = 4.5; // bias for particle x-positions (higher values = more center-biased)
+var zPosRange = 450; // the range of z-particles
+var zModifier = -250; // the amount to add to z-positions
+var zPosBias = 2.3; // bias for particle z-positions (higher values = more far-biased)
+var leftChance = 0.88; // the chance for a particle to spawn along the left edge of the screen
+var rightChance = 0.03; // the chance for a particle to spawn along the right edge of the screen
+var topBottomChance = 0.09; // the chance for a particle to spawn along the top/bottom edges of the screen
+// VELOCITY
+var velBias = 1.8; // bias for particle velocities (higher values = more center-biased)
+var minParticleVelocity = 2.5; // the minimum scalar for particle velocity
+var maxParticleVelocity = 3.5; // the maximum scalar for particle velocity
+var absMinParticleVelocity = 0.001; // the absolute lowest speed for particles
+var fleckVelocityScalar = 1.75; // velocity of flecks relative to normal particles
+var fleckYVelScalar = 0.75; // y-velocity range of flecks relative to x-velocity
+var bokehMinVelocity = maxParticleVelocity * 0.15; // the minimum velocity of bokeh
+var bokehMaxVelocity = maxParticleVelocity * 0.3; // the maximum velocity of bokeh
+
+/* ****************************** */
+/* * Particle analysis settings * */
+/* ****************************** */
+var ampLower = 7; // the lower bound for amplitude analysis (inclusive)
+var ampUpper = 30; // the upper bound for amplitude analysis (exclusive)
+var particleExponent = 4.5; // the power to raise velMult to after initial computation
+
+/* ***************** */
+/* * Misc settings * */
+/* ***************** */
+var cycleSpeed = 4; // the (arbitrary) scalar for cycling rainbow spectrums
+var blockWidthRatio = 0.63; // the width of the Monstercat logo relative to its containing block
+var blockHeightRatio = 0.73; // the height of the Monstercat logo relative to its containing block
+var mouseSleepTime = 1000; // inactivity period in milliseconds before the bottom text is hidden
+
+
+
+================================================================================
+FILE: js\util\download.js
+================================================================================
+
+//download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
+// v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
+// v2 added named files via a[download], msSaveBlob, IE (10+) support, and window.URL support for larger+faster saves than dataURLs
+// v3 added dataURL and Blob Input, bind-toggle arity, and legacy dataURL fallback was improved with force-download mime and base64 support
+
+// data can be a string, Blob, File, or dataURL
+
+		 
+						 
+						 
+function download(data, strFileName, strMimeType) {
+	
+	var self = window, // this script is only for browsers anyway...
+		u = "application/octet-stream", // this default mime also triggers iframe downloads
+		m = strMimeType || u, 
+		x = data,
+		D = document,
+		a = D.createElement("a"),
+		z = function(a){return String(a);},
+		
+		
+		B = self.Blob || self.MozBlob || self.WebKitBlob || z,
+		BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
+		fn = strFileName || "download",
+		blob, 
+		b,
+		ua,
+		fr;
+
+	//if(typeof B.bind === 'function' ){ B=B.bind(self); }
+	
+	if(String(this)==="true"){ //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
+		x=[x, m];
+		m=x[0];
+		x=x[1]; 
+	}
+	
+	
+	
+	//go ahead and download dataURLs right away
+	if(String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)){
+		return navigator.msSaveBlob ?  // IE10 can't do a[download], only Blobs:
+			navigator.msSaveBlob(d2b(x), fn) : 
+			saver(x) ; // everyone else can save dataURLs un-processed
+	}//end if dataURL passed?
+	
+	try{
+	
+		blob = x instanceof B ? 
+			x : 
+			new B([x], {type: m}) ;
+	}catch(y){
+		if(BB){
+			b = new BB();
+			b.append([x]);
+			blob = b.getBlob(m); // the blob
+		}
+		
+	}
+	
+	
+	
+	function d2b(u) {
+		var p= u.split(/[:;,]/),
+		t= p[1],
+		dec= p[2] == "base64" ? atob : decodeURIComponent,
+		bin= dec(p.pop()),
+		mx= bin.length,
+		i= 0,
+		uia= new Uint8Array(mx);
+
+		for(i;i<mx;++i) uia[i]= bin.charCodeAt(i);
+
+		return new B([uia], {type: t});
+	 }
+	  
+	function saver(url, winMode){
+		
+		
+		if ('download' in a) { //html5 A[download] 			
+			a.href = url;
+			a.setAttribute("download", fn);
+			a.innerHTML = "downloading...";
+			D.body.appendChild(a);
+			setTimeout(function() {
+				a.click();
+				D.body.removeChild(a);
+				if(winMode===true){setTimeout(function(){ self.URL.revokeObjectURL(a.href);}, 250 );}
+			}, 66);
+			return true;
+		}
+		
+		//do iframe dataURL download (old ch+FF):
+		var f = D.createElement("iframe");
+		D.body.appendChild(f);
+		if(!winMode){ // force a mime that will download:
+			url="data:"+url.replace(/^data:([\w\/\-\+]+)/, u);
+		}
+		 
+	
+		f.src = url;
+		setTimeout(function(){ D.body.removeChild(f); }, 333);
+		
+	}//end saver 
+		
+
+	if (navigator.msSaveBlob) { // IE10+ : (has Blob, but not a[download] or URL)
+		return navigator.msSaveBlob(blob, fn);
+	} 	
+	
+	if(self.URL){ // simple fast and modern way using Blob and URL:
+		saver(self.URL.createObjectURL(blob), true);
+	}else{
+		// handle non-Blob()+non-URL browsers:
+		if(typeof blob === "string" || blob.constructor===z ){
+			try{
+				return saver( "data:" +  m   + ";base64,"  +  self.btoa(blob)  ); 
+			}catch(y){
+				return saver( "data:" +  m   + "," + encodeURIComponent(blob)  ); 
+			}
+		}
+		
+		// Blob but not URL:
+		fr=new FileReader();
+		fr.onload=function(e){
+			saver(this.result); 
+		};
+		fr.readAsDataURL(blob);
+	}	
+	return true;
+} /* end download() */
+
+
+
+================================================================================
+FILE: js\util\helper\color_helper.js
+================================================================================
+
+function brighten(hexString, factor) {
+    hexString = hexString.replace('#', '');
+    var redHex = hexString.substring(0, 2);
+    var greenHex = hexString.substring(2, 4);
+    var blueHex = hexString.substring(4, 6);
+    var newRed = Math.floor((parseInt('0x' + redHex) * (1 / factor) + 255 * ((factor - 1) / factor)));
+    var newGreen = Math.floor((parseInt('0x' + greenHex) * (1 / factor) + 255 * ((factor - 1) / factor)));
+    var newBlue = Math.floor((parseInt('0x' + blueHex) * (1 / factor) + 255 * ((factor - 1) / factor)));
+    var newColor = '#'
+            + newRed.toString(16).toUpperCase()
+            + newGreen.toString(16).toUpperCase()
+            + newBlue.toString(16).toUpperCase();
+    return newColor;
+}
+
+function darken(hexString, factor) {
+    hexString = hexString.replace('#', '');
+    var redHex = hexString.substring(0, 2);
+    var greenHex = hexString.substring(2, 4);
+    var blueHex = hexString.substring(4, 6);
+    var newRed = Math.floor((parseInt('0x' + redHex) * (1 / factor)));
+    var newGreen = Math.floor((parseInt('0x' + greenHex) * (1 / factor)));
+    var newBlue = Math.floor((parseInt('0x' + blueHex) * (1 / factor)));
+    var newColor = '#'
+            + newRed.toString(16).toUpperCase()
+            + newGreen.toString(16).toUpperCase()
+            + newBlue.toString(16).toUpperCase();
+    return newColor;
+}
+
+
+
+================================================================================
+FILE: js\util\helper\genre_helper.js
+================================================================================
+
+var mainGenres = {
+    'Trap': '#820028',
+    'Drumstep': '#E20386',
+    'Drum & Bass': '#E10304',
+    'Trance': '#0584E3', // must come before electro
+    'Breaks': '#E06D61', // technically custom but must come before electro
+    'Electro House': '#E2D904', // must come before house
+    'House': '#E28C06',
+    'Hardcore': '#0DB104',
+    'Glitch Hop': '#19925B',
+    'Post Disco': '#29B8B2',
+    'Dubstep': '#8D03E2',
+    'Future Bass': '#9999FB',
+    'EDM': '#C2C1C2',
+    // begin custom colors
+    'Chillout': '#F4C2C2',
+    'Rock': '#B4D7BF',
+    'Pop': '#B3E234',
+    'Pink Cloud': '#F6B4D9',
+    'Karma Fields': '#000000', // this one is treated specially
+    'Mirai Sekai': '#FFFFFF' // also treated specially
+};
+
+var subgenres = {
+    'Trip Hop': 'Trap',
+
+    'Neurofunk': 'Drum & Bass',
+    'Techstep': 'Drum & Bass',
+
+    'Bass House': 'Electro House',
+    'Big Room House': 'Electro House',
+    'Bounce': 'Electro House',
+    'Complextro': 'Electro House',
+    'Outrun': 'Electro House',
+
+    'Electro Swing': 'House',
+
+    'Freeform': 'Hardcore',
+    'Hard Dance': 'Hardcore',
+
+    'Moombah': 'Glitch Hop',
+    'Neurohop': 'Glitch Hop',
+
+    'Hardstyle': 'Trance',
+    'Nu Style': 'Trance',
+
+    'Electro Soul': 'Post Disco',
+    'Indie Dance': 'Post Disco',
+    'Nu Disco': 'Post Disco',
+    'Synthwave': 'Post Disco',
+
+    'Brostep': 'Dubstep',
+    'Garage': 'Dubstep',
+    'Neurostep': 'Dubstep',
+    'Riddim': 'Dubstep',
+
+    'Nu Funk': 'Breaks',
+
+    'Downtempo': 'Chillout',
+
+    'Neofolk': 'Rock',
+    
+    'Industrial': 'EDM'
+};
+
+function getColor(genre) {
+    genre = genre.toLowerCase().replace('-', ' ');
+    for (var key in subgenres) {
+        if (genre.indexOf(key.toLowerCase()) !== -1) {
+            return mainGenres[subgenres[key]];
+        }
+    }
+    for (var key in mainGenres) {
+        if (genre.indexOf(key.toLowerCase()) !== -1) {
+            return mainGenres[key];
+        }
+    }
+    return mainGenres['EDM'];
+}
+
+
+
+================================================================================
+FILE: js\util\helper\misc_helper.js
+================================================================================
+
+var resRatio = $(window).width() / 1920;
+
+function selectiveToUpperCase(str) {
+    str = str.toUpperCase();
+    var i;
+    while ((i = str.indexOf('^')) !== -1) {
+        str = str.replace(str.substring(i, i + 2), str.substring(i + 1, i + 2).toLowerCase());
+    }
+    return str;
+}
+
+function onError(e) {
+    console.log(e);
+}
+
+
+
+================================================================================
+FILE: js\util\helper\random_helper.js
+================================================================================
+
+function centerBiasedRandom(range, bias) {
+    return biasedRandom(range / 2, bias) * (Math.random() >= 0.5 ? 1 : -1);
+}
+
+function biasedRandom(range, bias) {
+    return (range - Math.pow(Math.random() * Math.pow(range, bias), 1 / bias));
+}
+
+
+
+================================================================================
+FILE: js\util\helper\net\async_helper.js
+================================================================================
+
+function createCORSRequest(method, url){
+    var xhr = new XMLHttpRequest();
+    if ("withCredentials" in xhr){
+        xhr.open(method, url, true);
+    } else if (typeof XDomainRequest != "undefined"){
+        xhr = new XDomainRequest();
+        xhr.open(method, url);
+    } else {
+        xhr = null;
+    }
+    return xhr;
+}
+
+function loadSound(url) {
+    var request = createCORSRequest("GET", url);
+    request.responseType = 'arraybuffer';
+
+    request.onload = () => {
+        context.decodeAudioData(request.response, function(buffer) {
+            playSound(buffer);
+        }, onError);
+    };
+    request.send();
+}
+
+
+
+================================================================================
+FILE: js\util\helper\net\cookie_helper.js
+================================================================================
+
+function getCookie(c_name){
+    var c_value = document.cookie;
+    var c_start = c_value.indexOf(" " + c_name + "=");
+    if (c_start == -1){
+        c_start = c_value.indexOf(c_name + "=");
+    }
+    if (c_start == -1){
+        c_value = null;
+    }
+    else {
+        c_start = c_value.indexOf("=", c_start)+ 1;
+        var c_end = c_value.indexOf(";", c_start);
+        if (c_end == -1){
+            c_end = c_value.length;
+        }
+        c_value = unescape(c_value.substring(c_start,c_end));
+    }
+    return c_value;
+}
+
+function setCookie(c_name, value) {
+    document.cookie = c_name + '=' + value + '; expires=' + new Date(2037, 0, 1, 0, 0, 0, 0).toGMTString() + '; path=/';
+}
+
+
+
+================================================================================
+FILE: js\util\helper\net\url_helper.js
+================================================================================
+
+// from http://stackoverflow.com/questions/979975/
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+    // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]], pair[1] ];
+      query_string[pair[0]] = arr;
+    // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  } 
+    return query_string;
+} ();
+
+var songName = QueryString.song;
+if (songName !== undefined) {
+    songName = decodeURIComponent(songName);
+}
+var subgenreName = QueryString.subgenre;
+if (subgenreName !== undefined) {
+    subgenreName = decodeURIComponent(subgenreName);
+} else {
+    var genreName = QueryString.genre;
+    if (genreName !== undefined) {
+        genreName = decodeURIComponent(genreName);
+        if (genreName == 'DnB') {
+            genreName = 'Drum & Bass';
+        }
+    }
+}
+var artistName = QueryString.artist;
+if (artistName !== undefined) {
+    artistName = decodeURIComponent(artistName);
+}
+
+
+
+================================================================================
+FILE: js\visual\gui.js
+================================================================================
+
+var ctx = $("#canvas").get()[0].getContext("2d");
+
+function updateCanvas() {
+    $('#canvas').attr('width', spectrumWidth);
+    $('#canvas').attr('height', spectrumHeight + blockSize + 2 * blockTopPadding);
+    $('#songinfo').css('margin-top', -blockSize - blockTopPadding - 12);
+    $('#songinfo').css('margin-left', blockSize + blockSidePadding);
+    $('#songinfo').css('width', spectrumWidth - blockSize - blockSidePadding);
+    ctx.shadowColor = 'black';
+    ctx.shadowBlur = spectrumShadowBlur;
+    ctx.shadowOffsetX = spectrumShadowOffsetX;
+    ctx.shadowOffsetY = spectrumShadowOffsetY;
+}
+
+var blockSize = 192 * resRatio;
+var blockTopPadding = 50 * resRatio;
+var blockSidePadding = 30 * resRatio;
+
+// dudududududu
+var red = 255;
+var green = 0;
+var blue = 0;
+var stage = 0;
+
+function handleRainbowSpectrum() {
+    switch (stage) {
+        case 0:
+            if (green < 255) {
+                green = Math.min(green + cycleSpeed, 255);
+            } else {
+                ++stage;
+            }
+            break;
+        case 1:
+            if (red > 0) {
+                red = Math.max(red - cycleSpeed, 0);
+            } else {
+                ++stage;
+            }
+            break;
+        case 2:
+            if (blue < 255) {
+                blue = Math.min(blue + cycleSpeed, 255);
+            } else {
+                ++stage;
+            }
+            break;
+        case 3:
+            if (green > 0) {
+                green = Math.max(green - cycleSpeed, 0);
+            } else {
+                ++stage;
+            }
+            break;
+        case 4:
+            if (red < 255) {
+                red = Math.min(red + cycleSpeed, 255);
+            } else {
+                ++stage;
+            }
+            break;
+        case 5:
+            if (blue > 0) {
+                blue = Math.max(blue - cycleSpeed, 0);
+            } else {
+                ++stage;
+            }
+            break;
+    }
+    if (stage > 5) {
+        stage = 0;
+    }
+    color = 'rgb(' + red + ',' + green + ',' + blue + ')';
+}
+
+function checkHideableText() {
+    if (started && !textHidden && Date.now() - lastMouseMove >= mouseSleepTime) {
+        textHidden = true;
+        $('.hide').fadeOut(500);
+    }
+    if (!volumeHidden && Date.now() - lastVolumeChange >= mouseSleepTime) {
+        volumeHidden = true;
+        $('#volume-info').fadeOut(500);
+    }
+}
+
+function initGui(song) {
+    var $artist = $('#artist');
+    var $title = $('#title');
+
+    $artist.html('???');
+    $title.html('<span>???</span>');
+    document.title = '[vis.js] ??? \u2014 ???';
+    if (song != undefined) {
+        $artist.html(selectiveToUpperCase(song.getArtist()));
+
+        var baseArtistWidth = $('#songinfo').width();
+        var baseArtistSize = $artist.css('font-size').replace('px', '');
+        while ($artist[0].scrollWidth > baseArtistWidth) {
+            baseArtistSize -= 1;
+            $artist.css('font-size', baseArtistSize + 'px');
+        }
+
+
+        $title.html(selectiveToUpperCase("<span>"+song.getTitle().replace('<br>', "</span><br><span>")+"</span>"));
+
+        var maxTitleHeight = $('#cover').height() - ($artist.height() - 10) + 7;
+        var baseTitleSize = $title.css('font-size').replace('px', '');
+        while ($title.height() > maxTitleHeight) {
+            baseTitleSize -= 1;
+            $title.css('font-size', baseTitleSize + 'px');
+        }
+
+		var fullTitle = song.getArtist().replace(/\^/g, '') + ' \u2014 ' + song.getTitle().replace('<br>', ' ').replace(/\^/g, '');
+        document.title = '[vis.js] ' + fullTitle;
+        color = getColor(song.getGenre());
+		
+		$('#loading-value').html(fullTitle);
+		$('#loading-value').fadeIn();
+    }
+    else {
+        // Trigger animations even if there is no song
+        $("body").addClass("playing");
+    }
+    if (color == undefined) {
+        color = mainGenres.EDM;
+    }
+
+    var GUI_NoCover = false;
+    if (!GUI_NoCover) {
+        $("#cover").css({
+            left: 0,
+            top: spectrumHeight + blockTopPadding,
+            width: blockSize,
+            height: blockSize
+        })
+        $("#cover div").css("background-color", color);
+        $("#cover img.mcat").css({
+            left: blockSize * (1 - blockWidthRatio) / 2,
+            top: blockSize * (1 - blockHeightRatio) / 2,
+            width: blockSize * blockWidthRatio,
+            height: blockSize * blockHeightRatio
+        })
+        .attr("src", song.getGenre() == 'Mirai Sekai' ? 'img/mcatblack.svg' : 'img/mcat.svg')
+    }
+
+    $("#spectrum_preloader").css({
+        height: 2 * resRatio,
+        top: spectrumHeight - 2 * resRatio
+    })
+    $("#spectrum_preloader div").css("background-color", color);
+
+    if (song.getGenre() == 'Karma Fields') {
+        $('html').css('backgroundColor', '#E8E8E8');
+        $('.content #artist').css('color', '#000');
+        $('.content #title').css('color', '#000');
+        $('.content #songinfo').css('text-shadow', '0 0 0 rgba(0, 0, 0, 0.4)');
+        ctx.shadowBlur = 0;
+    }
+}
+
+
+
+================================================================================
+FILE: js\visual\spectrum.js
+================================================================================
+
+var lastProcess = Date.now();
+var lastSpectrum = [];
+var prevPeak = -1;
+
+function initSpectrumHandler() {
+    scriptProcessor.onaudioprocess = handleAudio;
+}
+
+function handleAudio() {
+    // don't do anything if the audio is paused
+    if (!isPlaying) {
+        return;
+    }
+
+    var now = Date.now();
+    do { now = Date.now(); } while (now - lastProcess < minProcessPeriod);
+    lastProcess = Date.now();
+
+    checkHideableText();
+
+    var initialArray =  new Uint8Array(analyzer.frequencyBinCount);
+    analyzer.getByteFrequencyData(initialArray);
+    var array = transformToVisualBins(initialArray);
+    ctx.clearRect(-ctx.shadowBlur, -ctx.shadowBlur, spectrumWidth + ctx.shadowBlur, spectrumHeight + ctx.shadowBlur);
+    if (song.getGenre() == 'ayy lmao') {
+        handleRainbowSpectrum();
+    }
+    ctx.fillStyle = color; // bar color
+
+    drawSpectrum(array);
+}
+
+var spectrumAnimation = "phase_1";
+var spectrumAnimationStart = 0;
+var lastFrameSampled = 0;
+
+function drawSpectrum(array) {
+    if (isPlaying) {
+        updateParticleAttributes(array);
+
+        if (lastSpectrum.length == 1) {
+            lastSpectrum = array;
+        }
+    }
+
+    var drawArray = isPlaying ? array : lastSpectrum;
+    array = getTransformedSpectrum(array);
+
+    var now = Date.now();
+
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = spectrumShadowBlur;
+    ctx.shadowOffsetX = spectrumShadowOffsetX;
+    ctx.shadowOffsetY = spectrumShadowOffsetY;
+    
+    var currentSampleFrame = Math.round((now-started-0.5)/1000 * sampleRate);
+    
+    if (lastFrameSampled != currentSampleFrame) { 
+        lastFrameSampled = currentSampleFrame;
+        
+        compiledSongData = compiledSongData + "\n\t[" + currentSampleFrame + "] = {"; 
+        for (var i = 0; i < spectrumSize; i++) {
+            if (roundExportedNumbers == true) {
+                compiledSongData = compiledSongData + "" + Math.round(array[i]) + ","; 
+            } else {
+                compiledSongData = compiledSongData + "" + array[i] + ","; 
+            }
+        }
+        compiledSongData = compiledSongData + "},"; 
+    }
+        
+    if (spectrumAnimation == "phase_1") {
+        var ratio = (now - started) / 500;
+        
+        ctx.fillRect(0, spectrumHeight - 2 * resRatio, (spectrumWidth/2) * ratio, 2 * resRatio);
+        ctx.fillRect(spectrumWidth - (spectrumWidth/2) * ratio, spectrumHeight - 2 * resRatio, (spectrumWidth/2) * ratio, 2 * resRatio);
+
+        if (ratio > 1) {
+            spectrumAnimation = "phase_2";
+            spectrumAnimationStart = now;
+        }
+    } else if (spectrumAnimation == "phase_2") {
+        var ratio = (now - spectrumAnimationStart) / 500;
+        
+        ctx.globalAlpha = Math.abs(Math.cos(ratio*10));
+
+        ctx.fillRect(0, spectrumHeight - 2 * resRatio, spectrumWidth, 2 * resRatio);
+
+        ctx.globalAlpha = 1;
+
+        if (ratio > 1) {
+            spectrumAnimation = "phase_3";
+            spectrumAnimationStart = now;
+        }
+    } else if (spectrumAnimation == "phase_3") {
+        var ratio = (now - spectrumAnimationStart) / 1000;
+        
+        
+        // drawing pass
+        for (var i = 0; i < spectrumSize; i++) {
+            var value = array[i];
+            
+            // Used to smooth transiton between bar & full spectrum (lasts 1 sec)
+            if (ratio < 1) {
+                value = value / (1 + 9 - 9 * ratio); 
+            }
+
+            if (value < 2 * resRatio) {
+                value = 2 * resRatio;
+            }
+            
+            ctx.fillRect(i * (barWidth + spectrumSpacing), spectrumHeight - value, barWidth, value, value);
+        }
+        
+    }
+
+    ctx.clearRect(0, spectrumHeight, spectrumWidth, blockTopPadding);
+}
+
+function updateParticleAttributes(array) {
+    var sum = 0;
+    for (var i = ampLower; i < ampUpper; i++) {
+        sum += array[i] / spectrumHeight;
+    }
+    velMult = sum / (ampUpper - ampLower);
+    particleSize = velMult;
+    velMult = Math.pow(velMult, particleExponent) * (1 - absMinParticleVelocity) + absMinParticleVelocity;
+    particleSize = (maxParticleSize - minParticleSize) * Math.pow(particleSize, particleSizeExponent) + minParticleSize;
+}
+
+
+
+================================================================================
+FILE: js\visual\gl\geometry.js
+================================================================================
+
+var particleCount = (($(document).width() * $(document).height()) / (1920 * 1080)) * baseParticleCount;
+
+
+//TODO: split main system into foreground and background particles
+var particles = new THREE.Geometry();
+var flecks = new THREE.Geometry();
+var bokeh = new THREE.Geometry();
+
+
+textureLoader = new THREE.TextureLoader();
+textureLoader.crossOrigin = '';
+
+
+var stdTexure = textureLoader.load(
+    baseURL + '/img/particle.png'
+)
+stdTexure.minFilter = THREE.LinearFilter;
+
+var fleckTexture = textureLoader.load(
+   baseURL + '/img/fleck.png'
+)
+fleckTexture.minFilter = THREE.LinearFilter;
+
+var bokehTexture = textureLoader.load(
+    baseURL + '/img/bokeh.png'
+)
+bokehTexture.minFilter = THREE.LinearFilter;
+
+var pMaterial = new THREE.PointsMaterial({
+    color: song.getGenre() === 'BTC' ? 0x000000 : 0xFFFFFF,
+    opacity: particleOpacity,
+    size: 5,
+    map: stdTexure,
+    blending: THREE.AdditiveBlending,
+    transparent: true
+});
+
+var fleckMaterial = new THREE.PointsMaterial({
+    color: color,
+    opacity: particleOpacity,
+    size: 4,
+    map: fleckTexture,
+    blending: THREE.AdditiveBlending,
+    transparent: true
+});
+
+var bokehMaterial = new THREE.PointsMaterial({
+    color: brighten(color, 2.1),
+    opacity: bokehOpacity,
+    size: 100,
+    map: bokehTexture,
+    blending: THREE.AdditiveBlending,
+    transparent: true
+});
+
+var velocityResScale = Math.pow(resRatio, 5);
+var fleckVelocity = maxParticleVelocity * fleckVelocityScalar;
+
+for (var p = 0; p < particleCount; p++) {
+    var z = biasedRandom(zPosRange, zPosBias) + zModifier;
+    var xRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE)) * 2; // maximum range on the x-axis at this z-value
+    var yRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE / ASPECT)) * 2; // maximum range on the y-axis at this z-value
+    var pX = Math.random() * xRange - xRange / 2,
+        pY = centerBiasedRandom(yRange, xPosBias),
+        pZ = z,
+        particle = new THREE.Vector3(pX, pY, pZ);
+      
+      // create a velocity vector
+    particle.velocity = new THREE.Vector3(
+        velocityResScale * (Math.random() * (maxParticleVelocity - minParticleVelocity) + minParticleVelocity),
+        velocityResScale * centerBiasedRandom(yVelRange, velBias),
+        0
+    );
+
+    // add it to the geometry
+    particles.vertices.push(particle);
+}
+
+fleckYVelScalar *= fleckVelocity;
+
+var fleckZ = 150;
+
+for (var p = 0; p < fleckCount; p++) {
+    var z = fleckZ;
+    var xRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE)) * 2; // maximum range on the x-axis at this z-value
+    var yRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE / ASPECT)) * 2; // maximum range on the y-axis at this z-value
+    var pX = Math.random() * xRange - xRange / 2,
+        pY = Math.floor(Math.random() * yRange) - yRange / 2,
+        pZ = z,
+        fleck = new THREE.Vector3(pX, pY, pZ);
+    fleck.fleck = true;
+      
+      // create a velocity vector
+    fleck.velocity = new THREE.Vector3(
+        velocityResScale * fleckVelocity,
+        velocityResScale * centerBiasedRandom(fleckYVelScalar, velBias),
+        0
+    );
+
+    // add it to the geometry
+    flecks.vertices.push(fleck);
+}
+
+var bokehYVelRange = ((bokehMinVelocity + bokehMaxVelocity) * 0.5) * 2;
+
+var bokehZ = 200;
+
+for (var p = 0; p < bokehCount; p++) {
+    var z = bokehZ;
+    //var z = Math.random() * zPosRange - (zPosRange / 2);
+    var xRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE)) * 2; // maximum range on the x-axis at this z-value
+    var yRange = Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE / ASPECT)) * 2; // maximum range on the y-axis at this z-value
+    var pX = Math.random() * xRange - xRange / 2,
+        pY = Math.random() * yRange - yRange / 2,
+        pZ = z,
+        b = new THREE.Vector3(pX, pY, pZ);
+    b.bokeh = true;
+      
+      // create a velocity vector
+    b.velocity = new THREE.Vector3(
+        velocityResScale * (Math.random() * (bokehMaxVelocity - bokehMinVelocity) + bokehMinVelocity),
+        velocityResScale * (Math.random() * bokehYVelRange - bokehYVelRange / 2),
+        0
+    );
+
+    // add it to the geometry
+    bokeh.vertices.push(b);
+}
+
+// create the particle systems
+var particleSystem = new THREE.Points(particles, pMaterial);
+var fleckSystem = new THREE.Points(flecks, fleckMaterial);
+var bokehSystem = new THREE.Points(bokeh, bokehMaterial);
+
+particleSystem.sortParticles = true;
+particleSystem.geometry.dynamic = true;
+
+fleckSystem.sortParticles = true;
+fleckSystem.geometry.dynamic = true;
+
+bokehSystem.sortParticles = true;
+bokehSystem.geometry.dynamic = true;
+
+// add it to the scene
+scene.add(particleSystem);
+if (song.getGenre() != 'BTC' && song.getGenre() != 'Mirai Sekai') {
+    scene.add(fleckSystem);
+    scene.add(bokehSystem);
+}
+
+
+
+================================================================================
+FILE: js\visual\gl\geom_util.js
+================================================================================
+
+var frustumPadding = 50; // the units to pad the frustum by
+
+function isInView(particle) {
+    var translated = new THREE.Vector3();
+    var size = particle.bokeh ? bokehMaterial.size : (particle.fleck ? fleckMaterial.size : pMaterial.size);
+    translated.x = particle.x;
+    translated.y = particle.y;
+    translated.z = particle.z - camera.position.z;
+    if (translated.x < 0) {
+        translated.x += frustumPadding;
+    } else {
+        translated.x -= frustumPadding;
+    }
+    if (translated.y < 0) {
+        translated.y += frustumPadding;
+    } else {
+        translated.y -= frustumPadding;
+    }
+    return frustum.containsPoint(translated);
+}
+
+function resetParticle(particle) {
+    var rand = Math.random();
+    var side;
+    if (rand < leftChance) {
+        side = 0;
+    } else if (rand < leftChance + rightChance) {
+        side = 2;
+    } else if (rand < leftChance + rightChance + topBottomChance / 2) {
+        side = 1;
+    } else {
+        side = 3;
+    }
+    
+    var pos = getValidSpawnPosition(side, particle.bokeh, particle.fleck);
+    particle.x = pos.x;
+    particle.y = pos.y;
+    particle.z = pos.z;
+
+    var yRange = particle.bokeh ? bokehYVelRange : (particle.fleck ? fleckYVelScalar : yVelRange);
+    var velVector = new THREE.Vector3((side != 0 ? 0.5 : 1) *
+        particle.bokeh
+                ? Math.random() * (bokehMaxVelocity - bokehMinVelocity) + bokehMinVelocity
+                : (particle.fleck
+                        ? fleckVelocity
+                        : Math.random() * (maxParticleVelocity - minParticleVelocity) + minParticleVelocity),
+        centerBiasedRandom(yRange, velBias),
+        0
+    );
+    velVector = velVector.multiply(new THREE.Vector3(velocityResScale, velocityResScale, velocityResScale));
+    if (side == 0) {
+        particle.velocity = velVector;
+    } else if (side == 2) {
+        particle.velocity = velVector.multiply(new THREE.Vector3(-1, 1, 1));
+    } else if (side == 1) {
+        particle.velocity = new THREE.Vector3(velVector.y, velVector.x, velVector.z);
+    } else if (side == 3) {
+        particle.velocity = new THREE.Vector3(velVector.y, -velVector.x, velVector.z);
+    }
+}
+
+/**
+ * Returns a random valid spawn position for a particle.
+ *
+ * @param side The side of the screen to generate the position on (left=0,
+ *             top=1, right=2, bottom=3)
+ * @param bokeh Whether the particle is a bokeh
+ * @param fleck Whether the particle is a fleck
+ * @return The generated spawn position
+ */
+function getValidSpawnPosition(side, bokeh, fleck) {
+    var z = bokeh ? bokehZ : (fleck ? fleckZ : biasedRandom(zPosRange, zPosBias) + zModifier); // random z-value
+    if (side == 0 || fleck) { // left
+        var x = -getXRangeAtZ(z) / 2; // x-value intersecting the frustum at this z-value
+        var yRange = getYRangeAtZ(z); // maximum range on the y-axis at this z-value
+        var y = bokeh ? Math.random() * yRange - yRange / 2 : centerBiasedRandom(yRange, xPosBias); // random y-value within calculated range
+    } else if (side == 2) { // right
+        var x = getXRangeAtZ(z) / 2;
+        var yRange = getYRangeAtZ(z);
+        var y = bokeh ? Math.random() * yRange - yRange / 2 : centerBiasedRandom(yRange, xPosBias); // random y-value within calculated range
+    } else if (side == 1) { // top
+        var y = -getYRangeAtZ(z) / 2;
+        var xRange = getXRangeAtZ(z);
+        var x = Math.random() * xRange - xRange / 2;
+    } else { // bottom
+        var y = getYRangeAtZ(z) / 2;
+        var xRange = getXRangeAtZ(z);
+        var x = Math.random() * xRange - xRange / 2;
+    }
+    return new THREE.Vector3(x, y, z);
+}
+
+function getXRangeAtZ(z) {
+    return Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE)) * 2;
+}
+
+function getYRangeAtZ(z) {
+    return Math.abs(camera.position.z - z) * Math.tan(toRads(VIEW_ANGLE / ASPECT)) * 2
+}
+
+function updateParticles() {
+    particleSystem.material.size = particleSize;
+    for (var i = 0; i < particles.vertices.length; i++) {
+        var particle = particles.vertices[i];
+        particle.x += particle.velocity.x * velMult;
+        particle.y += particle.velocity.y * velMult;
+        particle.z += particle.velocity.z * velMult;
+        if (particle.x > 0 && !isInView(particle)) {
+            resetParticle(particle);
+        }
+    }
+    particleSystem.geometry.__dirtyVertices = true;
+    particleSystem.geometry.verticesNeedUpdate = true;
+
+    for (var i = 0; i < flecks.vertices.length; i++) {
+        var particle = flecks.vertices[i];
+        particle.x += particle.velocity.x * velMult;
+        particle.y += particle.velocity.y * velMult;
+        particle.z += particle.velocity.z * velMult;
+        if (particle.x > 0 && !isInView(particle)) {
+            resetParticle(particle);
+        }
+    }
+    fleckSystem.geometry.__dirtyVertices = true;
+    fleckSystem.geometry.verticesNeedUpdate = true;
+
+    for (var i = 0; i < bokeh.vertices.length; i++) {
+        var particle = bokeh.vertices[i];
+        particle.x += particle.velocity.x * velMult;
+        particle.y += particle.velocity.y * velMult;
+        particle.z += particle.velocity.z * velMult;
+        if (particle.x > 0 && !isInView(particle)) {
+            resetParticle(particle);
+        }
+    }
+    bokehSystem.geometry.__dirtyVertices = true;
+    bokehSystem.geometry.verticesNeedUpdate = true;
+}
+
+function toRads(degs) {
+    return degs * Math.PI / 180;
+}
+
+
+
+================================================================================
+FILE: js\visual\gl\light.js
+================================================================================
+
+var pointLight = new THREE.PointLight(0xFFFFFF);
+
+// set its position
+pointLight.position.x = 10;
+pointLight.position.y = 50;
+pointLight.position.z = 130;
+
+// add to the scene
+scene.add(pointLight);
+
+
+
+================================================================================
+FILE: js\visual\gl\render.js
+================================================================================
+
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+(function animloop(){
+    updateParticles();
+    requestAnimFrame(animloop);
+    renderer.render(scene, camera);
+})();
+
+
+
+================================================================================
+FILE: js\visual\gl\scene.js
+================================================================================
+
+// set the scene size
+//var width = width == undefined ? 800 : width;
+//var height = height == undefined ? 600 : height;
+starWidth = $(document).width();
+starHeight = $(document).height();
+
+// set some camera attributes
+var VIEW_ANGLE = 45,
+  ASPECT = starWidth / starHeight,
+  NEAR = 0.1,
+  FAR = 10000;
+
+// create a WebGL renderer, camera
+// and a scene
+var renderer = new THREE.WebGLRenderer({alpha: true});
+var params = {
+    minFilter: THREE.LinearFilter, 
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    stencilBuffer: false
+};
+
+var camera = new THREE.PerspectiveCamera(
+        VIEW_ANGLE,
+        ASPECT,
+        NEAR,
+        FAR);
+
+var scene = new THREE.Scene();
+
+// add the camera to the scene
+scene.add(camera);
+
+// pull it back a bit
+camera.position.z = 300;
+
+// create the frustum
+var frustum = new THREE.Frustum();
+camera.updateMatrixWorld();
+frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+
+// start the renderer
+renderer.setSize(starWidth, starHeight);
+
+// attach the render-supplied DOM element
+renderer.domElement.id = 'particles';
+$('.partsbg').append(renderer.domElement);
+
+

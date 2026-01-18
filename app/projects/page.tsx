@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import AddProjectModal from '@/components/AddProjectModal'
 import { getAuthState, clearAuthState, getAuthHeader } from '@/lib/auth'
 
@@ -85,27 +86,10 @@ export default function ProjectsPage() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#8b949e' }}>
-            Loading projects...
-          </div>
+          <LoadingSpinner message="Loading projects..." />
         ) : projects.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: '#8b949e' }}>
-            <p>No projects yet. Create your first one!</p>
-            <button 
-              onClick={() => setShowModal(true)}
-              style={{ 
-                marginTop: '1rem',
-                padding: '0.75rem 1.5rem',
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Create Project
-            </button>
+            <p>No projects yet. Click "Add Project" above to create your first one!</p>
           </div>
         ) : (
           <div className="projects-grid">

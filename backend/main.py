@@ -73,6 +73,7 @@ async def lifespan(app: FastAPI):
     app.mongodb = app.mongodb_client.divergence
     app.users_collection = app.mongodb.users
     app.projects_collection = app.mongodb.projects
+    app.github_data_collection = app.mongodb.github_data  # Store translated.json here
     print("Connected to MongoDB!")
 
     yield
@@ -243,7 +244,8 @@ async def github_callback(code: str, state: str = None):
                "avatar_url": github_user.get("avatar_url"),
                "created_at": datetime.utcnow()
            }
-           await app.users_collection.insert_one(user_data)
+           result = await app.users_collection.insert_one(user_data)
+           user_data["_id"] = result.inserted_id
            user = user_data
        else:
            await app.users_collection.update_one(
@@ -256,13 +258,95 @@ async def github_callback(code: str, state: str = None):
            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
        )
       
-       # Redirect to frontend with token in URL
-       frontend_url = f"http://localhost:3000/home?token={access_token}&username={user['username']}"
+       # Auto-process GitHub data if not already processed
+       username = user["username"]
+       user_id = str(user["_id"])
+       await check_and_process_user_data(username, user_id)
+      
+       # Redirect to frontend with token, username, and user_id in URL
+       frontend_url = f"http://localhost:3000/home?token={access_token}&username={username}&user_id={user_id}"
        return RedirectResponse(url=frontend_url)
    except Exception as e:
        print(f"✗ Error: {e}")
        raise HTTPException(status_code=400, detail=str(e))
 
+
+async def check_and_process_user_data(username: str, user_id: str):
+    """Check if user data has been processed, if not trigger processing using process_github_user_main"""
+    try:
+        # Check if user already has processed data
+        user = await app.users_collection.find_one({"username": username})
+        
+        # Check if they have been processed before (flag in MongoDB)
+        if user and user.get("github_processed"):
+            # Check how old the processed data is
+            processed_at = user.get("processed_at")
+            if processed_at:
+                # If processed within last 1 day, skip re-processing (rate limit protection)
+                age = datetime.utcnow() - processed_at
+                if age.days < 1:
+                    print(f"User {username} processed {age.days} days ago, skipping re-processing (cache valid)")
+                    return
+                else:
+                    print(f"User {username} data is {age.days} days old, will re-process")
+            else:
+                print(f"User {username} already processed, skipping...")
+                return
+        
+        # Check if translated.json exists in user-specific directory (file-based check)
+        user_translated_file = Path(__file__).parent / "translation" / user_id / "translated.json"
+        if user_translated_file.exists():
+            # Check file modification time
+            file_age_seconds = (datetime.utcnow().timestamp() - user_translated_file.stat().st_mtime)
+            file_age_days = file_age_seconds / 86400
+            
+            if file_age_days < 1:
+                # File exists and is fresh, mark as processed in DB
+                await app.users_collection.update_one(
+                    {"username": username},
+                    {"$set": {"github_processed": True, "processed_at": datetime.utcnow()}}
+                )
+                print(f"Found fresh data for {username} ({file_age_days:.1f} days old), marked as processed")
+                return
+            else:
+                print(f"Data for {username} is stale ({file_age_days:.1f} days old), will re-process")
+        
+        # Not processed or data is stale - run process_github_user_main to fetch and process data
+        print(f"Processing GitHub data for user: {username} (ID: {user_id})")
+        try:
+            process_github_user_main(username, user_id)
+            
+            # After processing, store translated data in MongoDB
+            user_translated_file = Path(__file__).parent / "translation" / user_id / "translated.json"
+            if user_translated_file.exists():
+                with open(user_translated_file, 'r', encoding='utf-8') as f:
+                    translated_data = json.load(f)
+                
+                # Store in MongoDB
+                await app.github_data_collection.update_one(
+                    {"user_id": user_id, "username": username},
+                    {"$set": {
+                        "user_id": user_id,
+                        "username": username,
+                        "translated_data": translated_data,
+                        "updated_at": datetime.utcnow()
+                    }},
+                    upsert=True
+                )
+                print(f"✓ Stored translated data in MongoDB for {username}")
+            
+            # Mark as processed
+            await app.users_collection.update_one(
+                {"username": username},
+                {"$set": {"github_processed": True, "processed_at": datetime.utcnow()}}
+            )
+            print(f"✓ Successfully processed {username}")
+        except Exception as e:
+            print(f"⚠ Processing failed for {username}: {str(e)}")
+            # Don't block login if processing fails
+    except Exception as e:
+        print(f"⚠ Error in check_and_process_user_data: {str(e)}")
+        # Don't block login if there's an error
 
 
 
@@ -279,7 +363,13 @@ async def process_github_user(github_username: str, current_user: str = Depends(
         raise HTTPException(status_code=403, detail="You can only process your own GitHub data")
     
     try:
-        return process_github_user_main(github_username)
+        # Get user_id from MongoDB
+        user = await app.users_collection.find_one({"username": github_username})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_id = str(user["_id"])
+        return process_github_user_main(github_username, user_id)
         
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=408, detail="Processing timeout - operation took too long")
@@ -289,8 +379,8 @@ async def process_github_user(github_username: str, current_user: str = Depends(
 
 
 
-def process_github_user_main(github_username):
-    print(f"Starting processing pipeline for user: {github_username}")
+def process_github_user_main(github_username, user_id):
+    print(f"Starting processing pipeline for user: {github_username} (ID: {user_id})")
 
    
     """
@@ -299,11 +389,16 @@ def process_github_user_main(github_username):
     2. filtering.py - Filter > filtered.json
     3. translation.py - Translate to skills & stats > translated.json
     
+    Data is stored in translation/{user_id}/ directory
     Only the authenticated user can process their own GitHub data.
     """
     
 
     translation_dir = Path(__file__).parent / "translation"
+    # Create user-specific directory
+    user_dir = translation_dir / user_id
+    user_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Using user directory: {user_dir}")
     # same as os.path.join(os.path.dirname(__file__), "translation")
 
     # Step 1: Run GithubFetchPythonValt2.py
@@ -312,9 +407,12 @@ def process_github_user_main(github_username):
     
     username_url = f"https://github.com/{github_username}"
     
+    # RESULTS.txt goes in user-specific directory
+    results_file = user_dir / "RESULTS.txt"
+    
     result1 = subprocess.run(
         #argument order: [smthn] [filename] [args...]
-        [sys.executable, str(github_fetch_python_valt2), username_url],
+        [sys.executable, str(github_fetch_python_valt2), username_url, str(results_file)],
         capture_output=True,
         text=True,
         cwd=str(translation_dir),
@@ -330,10 +428,9 @@ def process_github_user_main(github_username):
     # Step 2: Run filtering.py
     print("Step 2: Filtering and cleaning data...")
     filtering_script = translation_dir / "filtering.py"
-    RESULTS_txt_file = translation_dir / "RESULTS.txt"  
-    print(f"DEBUG: RESULTS_txt_file path: {RESULTS_txt_file}")
+    
     result2 = subprocess.run(   
-        [sys.executable, str(filtering_script), str(RESULTS_txt_file)],
+        [sys.executable, str(filtering_script), str(results_file), str(user_dir)],
         capture_output=True,
         text=True,
         cwd=str(translation_dir),
@@ -349,10 +446,10 @@ def process_github_user_main(github_username):
     # Step 3: Run translation.py
     print("Step 3: Translating to developer profile...")
     translation_script = translation_dir / "translation.py"
-    filtered_json_file = translation_dir / "filtered.json"
+    filtered_json_file = user_dir / "filtered.json"
     
     result3 = subprocess.run(
-        [sys.executable, str(translation_script), str(filtered_json_file)],
+        [sys.executable, str(translation_script), str(filtered_json_file), str(user_dir)],
         capture_output=True,
         text=True,
         cwd=str(translation_dir),
@@ -365,9 +462,9 @@ def process_github_user_main(github_username):
     
     print("✓ Developer profile translated successfully")
     
-    # Load the results
-    filtered_file = translation_dir / "filtered.json"
-    translated_file = translation_dir / "translated.json"
+    # Load the results from user-specific directory
+    filtered_file = user_dir / "filtered.json"
+    translated_file = user_dir / "translated.json"
     
     filtered_data = None
     translated_data = None
@@ -397,14 +494,23 @@ def process_github_user_main(github_username):
 
 
 @app.get("/get-filtered-data/{github_username}")
-async def get_filtered_data(github_username: str, current_user: str = Depends(get_current_user)):
-    """Get filtered data for a GitHub user - reads from filtered.json"""
+async def get_filtered_data(github_username: str, user_id: str = None, current_user: str = Depends(get_current_user)):
+    """Get filtered data for a GitHub user - reads from user-specific filtered.json"""
     
     if current_user != github_username:
         raise HTTPException(status_code=403, detail="You can only access your own data")
     
-    # Look in the translation directory
-    filtered_file = Path(__file__).parent / "translation" / "filtered.json"
+    # Get user from MongoDB to get user_id if not provided
+    user = await app.users_collection.find_one({"username": github_username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Use provided user_id or get from MongoDB
+    if not user_id:
+        user_id = str(user["_id"])
+    
+    # Look in the user-specific directory
+    filtered_file = Path(__file__).parent / "translation" / user_id / "filtered.json"
     
     if not filtered_file.exists():
         raise HTTPException(status_code=404, detail="No filtered data found for this user")
@@ -412,9 +518,6 @@ async def get_filtered_data(github_username: str, current_user: str = Depends(ge
     try:
         with open(filtered_file, 'r', encoding='utf-8') as f:
             filtered_data = json.load(f)
-        
-        # Get user info from MongoDB to fill in profile data
-        user = await app.users_collection.find_one({"username": github_username})
         
         # Ensure the data has the expected structure for the frontend
         if not filtered_data.get("profile"):
@@ -461,48 +564,62 @@ async def get_current_github_user(current_user: str = Depends(get_current_user))
 
 
 @app.get("/get-translated-data/{github_username}")
-async def get_translated_data(github_username: str, current_user: str = Depends(get_current_user)):
-    """Get translated profile data for a GitHub user - reads from translated.json"""
+async def get_translated_data(github_username: str, user_id: str = None, current_user: str = Depends(get_current_user)):
+    """Get translated profile data for a GitHub user - reads from user-specific translated.json or MongoDB"""
     
     if current_user != github_username:
         raise HTTPException(status_code=403, detail="You can only access your own data")
     
-    # Look in the translation directory
-    translated_file = Path(__file__).parent / "translation" / "translated.json"
+    # Get user from MongoDB to get user_id if not provided
+    user = await app.users_collection.find_one({"username": github_username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
-    if not translated_file.exists():
-        raise HTTPException(status_code=404, detail="No translated data found for this user")
+    # Use provided user_id or get from MongoDB
+    if not user_id:
+        user_id = str(user["_id"])
     
-    try:
-        with open(translated_file, 'r', encoding='utf-8') as f:
-            translated_data = json.load(f)
-        
-        # Get user info from MongoDB to fill in profile data
-        user = await app.users_collection.find_one({"username": github_username})
-        
-        # Ensure the data has the expected structure
-        if not translated_data.get("profile"):
-            translated_data["profile"] = {}
-        
-        # Fill in profile data from MongoDB if missing
-        if user:
-            translated_data["profile"]["name"] = translated_data["profile"].get("name") or user.get("username")
-            translated_data["profile"]["username"] = github_username
-            translated_data["profile"]["avatarUrl"] = translated_data["profile"].get("avatarUrl") or user.get("avatar_url", "")
-            translated_data["profile"]["bio"] = translated_data["profile"].get("bio") or "No bio available"
-        
-        # Ensure other required fields exist
-        if "skills" not in translated_data:
-            translated_data["skills"] = {"radar": []}
-        if "languages" not in translated_data:
-            translated_data["languages"] = []
-        if "frameworks" not in translated_data:
-            translated_data["frameworks"] = []
-        if "libraries" not in translated_data:
-            translated_data["libraries"] = []
-        
-        return JSONResponse(translated_data)
-    except json.JSONDecodeError as e:
-        raise HTTPException(status_code=500, detail=f"Invalid JSON in translated file: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading translated data: {str(e)}")
+    # First try to read from file (fastest)
+    translated_file = Path(__file__).parent / "translation" / user_id / "translated.json"
+    
+    if translated_file.exists():
+        try:
+            with open(translated_file, 'r', encoding='utf-8') as f:
+                translated_data = json.load(f)
+        except Exception as e:
+            print(f"Error reading file, trying MongoDB: {e}")
+            translated_data = None
+    else:
+        translated_data = None
+    
+    # Fallback to MongoDB if file doesn't exist or failed to read
+    if not translated_data:
+        print(f"File not found, reading from MongoDB for {github_username}")
+        mongo_data = await app.github_data_collection.find_one({"user_id": user_id})
+        if mongo_data and "translated_data" in mongo_data:
+            translated_data = mongo_data["translated_data"]
+        else:
+            raise HTTPException(status_code=404, detail="No translated data found for this user")
+    
+    # Ensure the data has the expected structure
+    if not translated_data.get("profile"):
+        translated_data["profile"] = {}
+    
+    # Fill in profile data from MongoDB if missing
+    if user:
+        translated_data["profile"]["name"] = translated_data["profile"].get("name") or user.get("username")
+        translated_data["profile"]["username"] = github_username
+        translated_data["profile"]["avatarUrl"] = translated_data["profile"].get("avatarUrl") or user.get("avatar_url", "")
+        translated_data["profile"]["bio"] = translated_data["profile"].get("bio") or "No bio available"
+    
+    # Ensure other required fields exist
+    if "skills" not in translated_data:
+        translated_data["skills"] = {"radar": []}
+    if "languages" not in translated_data:
+        translated_data["languages"] = []
+    if "frameworks" not in translated_data:
+        translated_data["frameworks"] = []
+    if "libraries" not in translated_data:
+        translated_data["libraries"] = []
+    
+    return JSONResponse(translated_data)

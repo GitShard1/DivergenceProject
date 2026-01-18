@@ -1503,4 +1503,102 @@ h4 {
   animation: fadeInUp 0.6s ease-out forwards;
   animation-delay: 0.5s;
   opacity: 0;
+} 
+ 
+/* =========================================================
+   Skills & Languages Breakdown (Home Page)
+   ========================================================= */
+
+.skills-breakdown,
+.languages-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skill-bar-item,
+.language-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skill-bar-header,
+.language-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-name,
+.language-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #c9d1d9;
+}
+
+.skill-percentage,
+.language-percentage {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #58a6ff;
+}
+
+.skill-bar-track,
+.language-bar-track {
+  height: 8px;
+  background: #21262d;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+}
+
+.language-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #58a6ff, #2ea043);
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-tag {
+  padding: 0.4rem 0.75rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #c9d1d9;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.tech-tag:hover {
+  background: #30363d;
+  border-color: #58a6ff;
+}
+
+.framework-tag {
+  border-left: 3px solid #7c3aed;
+}
+
+.library-tag {
+  border-left: 3px solid #2ea043;
+}
+
+.tag-count {
+  color: #8b949e;
+  font-size: 0.75rem;
+  font-weight: 600;
 }

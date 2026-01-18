@@ -223,7 +223,7 @@ if __name__ == '__main__':
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python translated.py <filtered.json> [output_file]")
+        print("Usage: python translated.py <filtered.json> [output_dir]")
         sys.exit(1)
     
     # filtered_file = sys.argv[1]
@@ -231,10 +231,15 @@ if __name__ == '__main__':
     # received as str now, so convert back to path
     filtered_file = Path(sys.argv[1])
 
-    output_file = sys.argv[2] if len(sys.argv) > 2 else 'translated.json'
+    # If second argument is provided, it's the output directory
+    if len(sys.argv) > 2:
+        output_dir = Path(sys.argv[2])
+        output_file = output_dir / 'translated.json'
+    else:
+        output_file = 'translated.json'
     
     translator = DeveloperProfile1(filtered_file)
-    translator.save_to_json(output_file)    
+    translator.save_to_json(str(output_file))    
         
                     
         
