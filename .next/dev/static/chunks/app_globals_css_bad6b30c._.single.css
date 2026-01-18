@@ -2,6 +2,11 @@
 @layer properties {
   @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
     *, :before, :after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
       --tw-border-style: solid;
       --tw-blur: initial;
       --tw-brightness: initial;
@@ -348,6 +353,10 @@
     display: table;
   }
 
+  .transform {
+    transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );
+  }
+
   .resize {
     resize: both;
   }
@@ -489,7 +498,7 @@ h4 {
 
 .SignInPage {
   background: radial-gradient(1200px 600px at 20% 10%, #e9ebef26, #0000 60%), radial-gradient(900px 500px at 80% 30%, #eceef21f, #0000 55%), #0d1117;
-  background: radial-gradient(1200px 600px at 20% 10%, lab(92.979% -.154078 -2.19058 / .15), #0000 60%), radial-gradient(900px 500px at 80% 30%, lab(94.1758% -.154376 -2.19269 / .12), #0000 55%), #0d1117;
+  background: radial-gradient(1200px 600px at 20% 10%, lab(92.979% -.154048 -2.19058 / .15), #0000 60%), radial-gradient(900px 500px at 80% 30%, lab(94.1758% -.154406 -2.19268 / .12), #0000 55%), #0d1117;
   place-items: center;
   min-height: 100vh;
   padding: 2.5rem 1.25rem;
@@ -1674,6 +1683,63 @@ h4 {
   .modal-content {
     max-height: 95vh;
   }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: .6s ease-out forwards fadeInUp;
+}
+
+.fade-in-up-delay-1 {
+  opacity: 0;
+  animation: .6s ease-out .1s forwards fadeInUp;
+}
+
+.fade-in-up-delay-2 {
+  opacity: 0;
+  animation: .6s ease-out .3s forwards fadeInUp;
+}
+
+.fade-in-up-delay-3 {
+  opacity: 0;
+  animation: .6s ease-out .5s forwards fadeInUp;
+}
+
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false
 }
 
 @property --tw-border-style {

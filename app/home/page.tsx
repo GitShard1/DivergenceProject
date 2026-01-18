@@ -52,26 +52,32 @@ export default function HomePage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const handleAuth = () => {
+    const handleAuth = async () => {
       const tokenFromUrl = searchParams.get('token')
       const usernameFromUrl = searchParams.get('username')
       
       if (tokenFromUrl && usernameFromUrl) {
         setAuthState(usernameFromUrl, tokenFromUrl)
-        router.replace('/home')
+        window.history.replaceState({}, '', '/home')
+        await fetchUserData()
         return
       }
       
-      fetchUserData()
+      await fetchUserData()
     }
 
     handleAuth()
-  }, [])
+  }, [searchParams]) 
 
-  const fetchUserData = async () => {
+const fetchUserData = async () => {
+    const startTime = Date.now()  // ← Track start time
+    
     const { username, token, isAuthenticated } = getAuthState()
     
+    console.log('Fetching data for:', username)
+    
     if (!isAuthenticated) {
+      console.log('Not authenticated')
       router.push('/')
       return
     }
@@ -90,12 +96,19 @@ export default function HomePage() {
         clearAuthState()
         router.push('/')
       } else if (res.status === 404) {
+        console.log('404 - No data found')
         setUserData(null)
       }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
-      setLoading(false)
+      // Ensure minimum 3 seconds of loading
+      const elapsedTime = Date.now() - startTime
+      const remainingTime = Math.max(0, 750 - elapsedTime)
+      
+      setTimeout(() => {
+        setLoading(false)
+      }, remainingTime)
     }
   }
 
@@ -103,7 +116,46 @@ export default function HomePage() {
     return (
       <>
         <Navbar />
-        <div className="home-container">Loading...</div>
+        <div className="home-container" style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh'
+        }}>
+          <div className="spinner-container">
+            <svg 
+              className="spinner" 
+              width="60" 
+              height="60" 
+              viewBox="0 0 60 60"
+              style={{
+                animation: 'spin 1s linear infinite'
+              }}
+            >
+              <circle
+                cx="30"
+                cy="30"
+                r="25"
+                fill="none"
+                stroke="#238636"
+                strokeWidth="4"
+                strokeDasharray="157"
+                strokeDashoffset="39"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <style jsx>{`
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}</style>
+        </div>
       </>
     )
   }
@@ -124,7 +176,7 @@ export default function HomePage() {
       <Navbar />
       <div className="home-container">
         {/* PROFILE SECTION */}
-        <div className="profile-section">
+        <div className="profile-section fade-in-up-delay-1">
           <div className="profile-header">
             <img 
               src={userData.profile?.avatar || '/default-avatar.png'} 
@@ -188,7 +240,7 @@ export default function HomePage() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="content-grid">
+        <div className="content-grid fade-in-up-delay-2">
           {/* Left Column: Projects */}
           <div className="left-column">
             {/* TOP PROJECTS SECTION */}
