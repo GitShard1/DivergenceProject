@@ -522,7 +522,6 @@ SCOPING_SYSTEM_PROMPT = "You are an expert Product Manager conducting a project 
 async def create_ai_context(project: ProjectCreate,
                             current_user: str = Depends(get_current_user)
                             ):
-    
     #pull github data into a variable
     client = BackboardClient(api_key=BACKBOARD_API_KEY)
     scoping_assistant = await client.create_assistant(
