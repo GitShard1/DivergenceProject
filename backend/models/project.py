@@ -59,12 +59,11 @@ class ProjectCreate(BaseModel):
     # Basic info
     name: str = Field(..., min_length=1, max_length=100)
     goal: str = Field(..., min_length=10, max_length=500)
-    dueDate: datetime
+    dueDate: str
     mode: ProjectMode
     
     # Team (only for COLLAB mode)
     teamMembers: Optional[List[str]] = [] 
-    hasPM: Optional[bool] = False
     
     # Repo
     repoOption: RepoOption

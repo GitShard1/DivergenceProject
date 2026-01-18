@@ -1,4 +1,5 @@
 import os
+import certifi
 import httpx
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
@@ -12,9 +13,11 @@ from models.project import ProjectCreate
 import uuid
 from jose import jwt
 
+
+
 load_dotenv()
 
-
+ca = certifi.where()
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
@@ -26,23 +29,16 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-app = FastAPI(title="Divergence API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 uri = F"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.ncuqrpz.mongodb.net/?appName=Cluster0"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.mongodb_client = AsyncIOMotorClient(uri)
+    app.mongodb_client = AsyncIOMotorClient(
+        uri, 
+        tlsCAFile=ca,
+        tlsAllowInvalidCertificates=True)
     app.mongodb = app.mongodb_client.divergence
     print("Connected to MongoDB!")
 
@@ -80,35 +76,37 @@ async def health_check():
        "mongodb": "connected" if hasattr(app, 'mongodb_client') else "disconnected"
    }
 
-@app.post('/api/projects/create')
+@app.post('/api/projects')
 async def create_project(project: ProjectCreate):
-    projects_collection = app.mongodb["projects"]
-    
-    project_id = str(uuid.uuid4())
+    try:
+        
+        projects_collection = app.mongodb.projects
+        
+        project_id = str(uuid.uuid4())
 
-    project_data = {
-        "project_id": project_id,
-        "name": project.name,
-        "goal": project.goal,
-        "dueDate": project.dueDate,
-        "mode": project.mode,
-        "teamMembers": project.teamMembers,
-        "hasPM": project.hasPM,
-        "repoOption": project.repoOption,
-        "existingRepoUrl": project.existingRepoUrl
-    }
+        project_data = {
+            "project_id": project_id,
+            "name": project.name,
+            "goal": project.goal,
+            "dueDate": project.dueDate,
+            "mode": project.mode,
+            "teamMembers": project.teamMembers,
+            "repoOption": project.repoOption,
+            "existingRepoUrl": project.existingRepoUrl
+        }
 
-    await projects_collection.insert_one(project_data)
-
-
-    return {
-        "projectId": project_id,
-        "status": "created"
-    }
+        await projects_collection.insert_one(project_data)
 
 
-
-
+        return {
+            "projectId": project_id,
+            "status": "created"
+        }
+    except Exception as e:
+        print(f"✗ Error creating project: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/projects/{project_id}")
 async def get_project(project_id: str):
