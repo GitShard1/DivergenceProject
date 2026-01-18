@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from './AddProjectModal.module.css'
+import ProjectScopingChat from './ProjectScopingChat'
 
 interface AddProjectModalProps {
   isOpen: boolean
@@ -15,6 +16,11 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
   const [mode, setMode] = useState<'solo' | 'collab'>('solo')
   const [repoOption, setRepoOption] = useState<'new' | 'existing'>('new')
   const [existingRepoUrl, setExistingRepoUrl] = useState('')
+  
+  // Chat modal state
+  const [showChat, setShowChat] = useState(false)
+  const [createdProjectId, setCreatedProjectId] = useState('')
+  const [createdProjectName, setCreatedProjectName] = useState('')
 
   const handleSubmit = async () => {
     const payload = {
@@ -36,20 +42,31 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
       
       const data = await response.json()
       console.log('Response:', data)
-      alert(`Project created! ID: ${data.projectId}`)
       
-      setName('')
-      setGoal('')
-      setDueDate('')
-      setMode('solo')
-      setRepoOption('new')
-      setExistingRepoUrl('')
-      onClose()
+      // Store project info and open chat
+      setCreatedProjectId(data.projectId)
+      setCreatedProjectName(name)
+      setShowChat(true)
       
     } catch (error) {
       console.error('Error:', error)
       alert('Failed to create project')
     }
+  }
+
+  const handleChatClose = () => {
+    setShowChat(false)
+    
+    // Reset form
+    setName('')
+    setGoal('')
+    setDueDate('')
+    setMode('solo')
+    setRepoOption('new')
+    setExistingRepoUrl('')
+    
+    // Close the add project modal
+    onClose()
   }
 
   if (!isOpen) return null
@@ -112,9 +129,9 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
                 disabled
                 className={`${styles.modeButton} ${styles.inactive}`}
                 style={{ opacity: 0.5, cursor: 'not-allowed' }}
-                >
+              >
                 Team (Coming Soon)
-                </button>
+              </button>
             </div>
           </div>
 
@@ -171,6 +188,14 @@ export default function AddProjectModal({ isOpen, onClose }: AddProjectModalProp
 
         </div>
       </div>
+      
+      {/* Chat Modal - renders on top when showChat is true */}
+      <ProjectScopingChat 
+        isOpen={showChat}
+        onClose={handleChatClose}
+        projectId={createdProjectId}
+        projectName={createdProjectName}
+      />
     </>
   )
 }
