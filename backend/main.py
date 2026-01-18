@@ -506,3 +506,87 @@ async def get_translated_data(github_username: str, current_user: str = Depends(
         raise HTTPException(status_code=500, detail=f"Invalid JSON in translated file: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading translated data: {str(e)}")
+    
+      # =================== BACKBOARDIO ========================== #
+import requests
+from backboard import BackboardClient
+
+BACKBOARD_API_KEY = os.getenv('BACKBOARD_KEY')
+BACKBOARD_BASE_URL = "https://app.backboard.io/api"
+BACKBOARD_HEADERS = {"X-API-Key": BACKBOARD_API_KEY}
+
+SCOPING_SYSTEM_PROMPT = "You are an expert Product Manager conducting a project scoping interview. Your goal is to understand what the user wants to build through conversational questions. Your responsibilities are: (1) Ask clarifying questions to understand what problem this solves, who the users or target audience are, what the core features are (must-have vs nice-to-have), the technical complexity, any constraints such as timeline, budget, or existing tech stack, and the success criteria. (2) After each user response, assess your understanding by evaluating whether you understand the problem clearly, know who the users are, know what needs to be built, understand the constraints, and can confidently create a project breakdown. (3) Calculate confidence on a scale from 0 to 1 where 0–0.2 means just starting and needing basic info, 0.2–0.4 means understanding the problem but needing features or users, 0.4–0.6 means knowing what to build but needing technical details, 0.6–0.8 means good understanding with edge cases remaining, and 0.8–1.0 means fully understood and ready for breakdown. (4) Know when to stop: stop at 0.85 confidence or higher, stop after a maximum of 8 questions, and if the user provides comprehensive answers, increase confidence significantly. You must respond with ONLY valid JSON in this exact structure: {{ 'question': 'Your next clarifying question here or Ready to proceed! if confidence is at least 0.85', 'confidence': 0.75, 'reasoning': 'Brief explanation of current understanding and what is still needed', 'understood_so_far': {{ 'problem': 'What problem this solves', 'users': 'Who will use this', 'features': ['list','of','key','features'], 'constraints': ['any','known','constraints'] }} }}. Ask exactly one question at a time, be conversational and friendly, never repeat a question, increase confidence appropriately when the user provides detail, prefer breadth over depth early, and if confidence is at least 0.85, set the question field to Ready to proceed!. Return only the JSON object and no other text."
+
+@app.post("/api/projects/create-ai-context")
+async def create_ai_context(project: ProjectCreate,
+                            current_user: str = Depends(get_current_user)
+                            ):
+    #pull github data into a variable
+    client = BackboardClient(api_key=BACKBOARD_API_KEY)
+    scoping_assistant = await client.create_assistant(
+        name="Product Manager",
+        description=f"ROLE DETAILS: {SCOPING_SYSTEM_PROMPT}, PERSONAL APTITUDES: . "
+    )
+
+    thread = await client.create_thread(scoping_assistant.assistant_id)
+
+    response = await client.add_message(
+        thread_id=thread.thread_id,
+        content=f'This is a project called: {project.name}, aiming to {project.goal} by {project.dueDate}',
+        llm_provider="anthropic",
+        model_name="claude-sonnet-4-20250514",
+        memory="auto",
+        stream=False
+    )
+
+    import json
+    import re
+    try:
+        content = re.sub(r'```json?\n?|\n?```', '', response.content).strip()
+        ai_data = json.loads(content)
+    except:
+        ai_data = {"question": response.content, "confidence": 0.2}
+    
+    # Return thread_id + first question
+    return {
+        "thread_id": thread.thread_id,
+        "question": ai_data.get("question"),
+        "confidence": ai_data.get("confidence", 0.2)
+    }
+class ContinueScoping(BaseModel):
+    thread_id: str
+    message: str
+
+@app.post("/api/projects/continue-scoping")
+async def continue_scoping(data: ContinueScoping):
+    """Continue scoping conversation - frontend loops this"""
+    
+    client = BackboardClient(api_key=BACKBOARD_API_KEY)
+    
+    # Send user's answer to existing thread
+    response = await client.add_message(
+        thread_id=data.thread_id,
+        content=data.message,
+        llm_provider="anthropic",
+        model_name="claude-sonnet-4-20250514",
+        memory="auto",
+        stream=False
+    )
+    
+    # Parse response
+    import json
+    import re
+    try:
+        content = re.sub(r'```json?\n?|\n?```', '', response.content).strip()
+        ai_data = json.loads(content)
+    except:
+        ai_data = {"question": response.content, "confidence": 0.5}
+    
+    confidence = ai_data.get("confidence", 0.5)
+    
+    # Check if done
+    return {
+        "question": ai_data.get("question"),
+        "confidence": confidence,
+        "complete": confidence >= 0.85
+    }
