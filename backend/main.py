@@ -1,16 +1,52 @@
 import os
+import sys
+import subprocess
+import json
 import httpx
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.responses import RedirectResponse, JSONResponse
 from pymongo import MongoClient
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from jose import jwt
+from pathlib import Path
 
 load_dotenv()
 
 app = FastAPI()
+executor = ThreadPoolExecutor(max_workers=3)  # Allow up to 3 concurrent processing tasks
+
+# JWT Configuration (must be before verify_token)
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+
+def get_current_user(authorization: str = Header(None)) -> str:
+    """Extract username from JWT token in Authorization header"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing authorization header")
+    
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid authorization scheme")
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("username")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return username
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
@@ -18,11 +54,6 @@ GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
 GITHUB_USER_URL = "https://api.github.com/user"
-
-# JWT Configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 from pymongo.mongo_client import MongoClient
 
@@ -181,7 +212,7 @@ async def github_callback(code: str, state: str = None):
         # Create JWT token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": str(user.get("_id"))},
+            data={"sub": str(user.get("_id")), "username": github_user["login"]},
             expires_delta=access_token_expires
         )
         
@@ -201,3 +232,145 @@ async def github_callback(code: str, state: str = None):
         print(f"DEBUG: Error occurred: {str(e)}")
         print(f"DEBUG: Error type: {type(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+
+# Translation    =================================================================
+
+
+# Process GitHub user data endpoint
+@app.post("/process-github/{github_username}")
+async def process_github_user(github_username: str, current_user: str = Depends(get_current_user)):
+    """Process GitHub user data - only if logged in as that user"""
+
+
+    # Only allow processing if logged in as that user
+    if current_user != github_username:
+        raise HTTPException(status_code=403, detail="You can only process your own GitHub data")
+    
+    try:
+        # Run blocking code in thread pool (non-blocking)
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(executor, process_github_user_main, github_username)
+        
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="Processing timeout - operation took too long")
+    except Exception as e:
+        print(f"Processing error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Processing failed: {str(e)}")
+
+
+
+def process_github_user_main(github_username):
+    print(f"Starting processing pipeline for user: {github_username}")
+
+   
+    """
+    Process steps:
+    1. GithubFetchPythonValt2.py - top 5 repos to txt > RESULTS.txt
+    2. filtering.py - Filter > filtered.json
+    3. translation.py - Translate to skills & stats > translated.json
+    
+    Only the authenticated user can process their own GitHub data.
+    """
+    
+
+    translation_dir = Path(__file__).parent / "translation"
+    # same as os.path.join(os.path.dirname(__file__), "translation")
+
+    # Step 1: Run GithubFetchPythonValt2.py
+    print("Step 1: Fetching GitHub repositories...")
+    github_fetch_python_valt2 = translation_dir / "GithubFetchPythonValt2.py"
+    
+    username_url = f"https://github.com/{github_username}"
+    
+    result1 = subprocess.run(
+        #argument order: [smthn] [filename] [args...]
+        [sys.executable, str(github_fetch_python_valt2), username_url],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=120
+    )
+    
+    if result1.returncode != 0:
+        print(f"GithubFetch error: {result1.stderr}")
+        raise HTTPException(status_code=400, detail=f"GitHub fetch failed: {result1.stderr}")
+    
+    print("✓ GitHub repositories fetched successfully")
+    
+    # Step 2: Run filtering.py
+    print("Step 2: Filtering and cleaning data...")
+    filtering_script = translation_dir / "filtering.py"
+    RESULTS_txt_file = translation_dir / "RESULTS.txt"  
+    print(f"DEBUG: RESULTS_txt_file path: {RESULTS_txt_file}")
+    result2 = subprocess.run(   
+        [sys.executable, str(filtering_script), str(RESULTS_txt_file)],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=60
+    )
+    
+    if result2.returncode != 0:
+        print(f"Filtering error: {result2.stderr}")
+        raise HTTPException(status_code=400, detail=f"Filtering failed: {result2.stderr}")
+    
+    print("✓ Data filtered successfully")
+    
+    # Step 3: Run translation.py
+    print("Step 3: Translating to developer profile...")
+    translation_script = translation_dir / "translation.py"
+    filtered_json_file = translation_dir / "filtered.json"
+    
+    result3 = subprocess.run(
+        [sys.executable, str(translation_script), str(filtered_json_file)],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=60
+    )
+    
+    if result3.returncode != 0:
+        print(f"Translation error: {result3.stderr}")
+        raise HTTPException(status_code=400, detail=f"Translation failed: {result3.stderr}")
+    
+    print("✓ Developer profile translated successfully")
+    
+    # Load the results
+    filtered_file = translation_dir / "filtered.json"
+    translated_file = translation_dir / "translated.json"
+    
+    filtered_data = None
+    translated_data = None
+    
+
+    if filtered_file.exists():
+        with open(filtered_file, 'r') as f:
+            filtered_data = json.load(f)
+    
+    if translated_file.exists():
+        with open(translated_file, 'r') as f:
+            translated_data = json.load(f)
+    
+    # Store in MongoDB as 'user_github_results' collection AAAAAAAAAAAAAAAAAA
+    if db:
+        user_results = db["user_github_results"]
+        result_doc = {
+            "username": github_username,
+            "processed_at": datetime.utcnow(),
+            "filtered_data": filtered_data,
+            "translated_data": translated_data
+        }
+        user_results.insert_one(result_doc)
+    
+    print(" DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE")
+    print("Translated FILE:",translated_file)
+
+    return JSONResponse({
+        "status": "success",
+        "message": f"Successfully processed {github_username}",
+        "github_username": github_username,
+        "translated_data": translated_data
+    })
+
