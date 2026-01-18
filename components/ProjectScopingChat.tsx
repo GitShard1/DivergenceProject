@@ -14,25 +14,24 @@ interface ProjectScopingChatProps {
   onClose: () => void
   projectId: string
   projectName: string
+  projectGoal: string
+  projectDueDate: string
 }
 
 export default function ProjectScopingChat({ 
   isOpen, 
   onClose, 
   projectId,
-  projectName 
+  projectName,
+  projectGoal,
+  projectDueDate
 }: ProjectScopingChatProps) {
-  const [confidence, setConfidence] = useState(15)
+  const [confidence, setConfidence] = useState(0)
   const [userInput, setUserInput] = useState('')
-  const [chatHistory, setChatHistory] = useState<Message[]>([
-    { 
-      type: 'assistant', 
-      content: "Let's start by understanding your project better. What's the core functionality you're building?" 
-    }
-  ])
+  const [chatHistory, setChatHistory] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [threadId, setThreadId] = useState<string | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -43,34 +42,79 @@ export default function ProjectScopingChat({
     scrollToBottom()
   }, [chatHistory])
 
-  const handleSubmit = async () => {
-    if (!userInput.trim() || isLoading) return
+  // Initialize scoping when modal opens
+  useEffect(() => {
+    if (isOpen && !threadId) {
+      initializeScoping()
+    }
+  }, [isOpen])
 
-    const response = userInput
+  const initializeScoping = async () => {
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/projects/create-ai-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: projectName,
+          goal: projectGoal,
+          dueDate: projectDueDate,
+          mode: "solo",
+          teamMembers: [],
+          repoOption: "new",
+          existingRepoUrl: null
+        })
+      })
+      
+      const data = await response.json()
+      
+      // Save thread ID
+      setThreadId(data.thread_id)
+      
+      // Set initial confidence
+      setConfidence(Math.round(data.confidence * 100))
+      
+      // Add first AI question
+      setChatHistory([{ 
+        type: 'assistant', 
+        content: data.question
+      }])
+      
+    } catch (error) {
+      console.error('Error initializing scoping:', error)
+      setChatHistory([{ 
+        type: 'error', 
+        content: 'Failed to start scoping. Please try again.' 
+      }])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!userInput.trim() || isLoading || !threadId) return
+
+    const userMessage = userInput.trim()
     setUserInput('')
     
     // Add user message to history
-    setChatHistory(prev => [...prev, { type: 'user', content: response }])
+    setChatHistory(prev => [...prev, { type: 'user', content: userMessage }])
     
     setIsLoading(true)
 
     try {
-      // Call your Backboard API endpoint
-      const result = await fetch(`http://localhost:8000/api/projects/${projectId}/chat`, {
+      // Call continue scoping endpoint
+      const response = await fetch('http://localhost:8000/api/projects/continue-scoping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: response,
-          session_id: sessionId
+          thread_id: threadId,
+          message: userMessage
         })
       })
       
-      const data = await result.json()
-      
-      // Update session ID
-      if (data.session_id) {
-        setSessionId(data.session_id)
-      }
+      const data = await response.json()
       
       // Update confidence
       setConfidence(Math.round(data.confidence * 100))
@@ -80,15 +124,16 @@ export default function ProjectScopingChat({
         setIsComplete(true)
         setChatHistory(prev => [...prev, { 
           type: 'system', 
-          content: '🎉 Analysis complete! Generating your personalized project breakdown...' 
+          content: '🎉 Scoping complete! Ready to generate your project breakdown.' 
         }])
       } else {
-        // Add AI response
+        // Add AI's next question
         setChatHistory(prev => [...prev, { 
           type: 'assistant', 
-          content: data.message 
+          content: data.question
         }])
       }
+      
     } catch (error) {
       console.error('Error:', error)
       setChatHistory(prev => [...prev, { 
@@ -108,23 +153,9 @@ export default function ProjectScopingChat({
   }
 
   const handleGenerateBreakdown = async () => {
-    try {
-      const result = await fetch(`http://localhost:8000/api/projects/${projectId}/generate-breakdown`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      const data = await result.json()
-      
-      // Close chat and navigate to breakdown view
-      alert('Breakdown generated! Redirecting...')
-      onClose()
-      // TODO: Navigate to breakdown page
-      
-    } catch (error) {
-      console.error('Error generating breakdown:', error)
-      alert('Failed to generate breakdown')
-    }
+    // TODO: Add task generation endpoint call here
+    alert('Task generation coming next!')
+    onClose()
   }
 
   if (!isOpen) return null
@@ -136,7 +167,7 @@ export default function ProjectScopingChat({
       <div className={styles.container}>
         <div className={styles.modal}>
           
-          {/* Header with close button */}
+          {/* Header */}
           <div className={styles.header}>
             <div>
               <h2 className={styles.title}>Scoping: {projectName}</h2>
@@ -208,14 +239,14 @@ export default function ProjectScopingChat({
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type your response..."
-                  disabled={isLoading}
+                  disabled={isLoading || !threadId}
                   className={styles.textarea}
                   rows={3}
                 />
                 
                 <button
                   onClick={handleSubmit}
-                  disabled={!userInput.trim() || isLoading}
+                  disabled={!userInput.trim() || isLoading || !threadId}
                   className={styles.sendButton}
                 >
                   {isLoading ? (
