@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [00:00:00.707] Server  LOG     ✓ Ready in 525ms
 [00:00:03.644] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [00:00:15.124] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
@@ -39,3 +40,8 @@
 [01:38:18.867] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [01:38:22.310] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [01:38:25.786] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+=======
+[00:00:02.827] Server  LOG     ✓ Ready in 2.1s
+[00:00:04.129] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+>>>>>>> 886b0b8ed27f0a5c2e2b8ec0fabc7a6d82b88555
+[01:42:44.371] Server  LOG     ✓ Compiled in 79ms

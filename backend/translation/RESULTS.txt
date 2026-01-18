@@ -1,0 +1,1871 @@
+GitHub Repositories Dump
+User: torvalds
+================================================================================
+
+
+================================================================================
+REPOSITORY: AudioNoise
+================================================================================
+
+
+================================================================================
+FILE: am.h
+================================================================================
+
+//
+// Silly amplitude modulation signal generator "effect"
+// It doesn't actually care about the input, it's useful
+// mainly for testing the LFO (and generating signals
+// for testing other effects)
+//
+static struct {
+	struct lfo_state base_lfo, mod_lfo;
+	float depth, volume;
+} am;
+
+static inline void am_describe(float pot[4])
+{
+	fprintf(stderr, " volume=%g", pot[0]);
+	fprintf(stderr, " freq=%.0f Hz", pot_frequency(pot[1]));
+	fprintf(stderr, " depth=%g", pot[2]);
+	fprintf(stderr, " lfo=%g Hz\n", 1 + 10*pot[3]);
+}
+
+static inline void am_init(float pot[4])
+{
+	am.volume = pot[0];
+	set_lfo_freq(&am.base_lfo, pot_frequency(pot[1]));
+	am.depth = pot[2];
+	set_lfo_freq(&am.mod_lfo, 1 + 10*pot[3]); // 1..11 Hz
+}
+
+static inline float am_step(float in)
+{
+	float val = lfo_step(&am.base_lfo, lfo_sinewave);
+	float mod = lfo_step(&am.mod_lfo, lfo_sinewave);
+	float multiplier = 1 + mod * am.depth;
+
+	return val * multiplier * am.volume;
+}
+
+
+
+================================================================================
+FILE: biquad.h
+================================================================================
+
+//
+// Calculate biquad coefficients
+//
+struct biquad_coeff {
+	float b0, b1, b2;
+	float a1, a2;
+};
+
+struct biquad_state {
+	float x[2], y[2];
+};
+
+struct biquad {
+	struct biquad_coeff coeff;
+	struct biquad_state state;
+};
+
+// Direct form 1 may need more state than the "canonical" DF2,
+// but gets noisy much quicker.
+static inline float biquad_step_df1(struct biquad_coeff *c, float in, float x[2], float y[2])
+{
+	float out = c->b0*in + c->b1*x[0] + c->b2*x[1] - c->a1*y[0] - c->a2*y[1];
+	x[1] = x[0]; x[0] = in;
+	y[1] = y[0]; y[0] = out;
+	return out;
+}
+
+static inline float _biquad_step(struct biquad_coeff *c, struct biquad_state *s, float x0)
+{
+	return biquad_step_df1(c, x0, s->x, s->y);
+}
+
+static inline void _biquad_lpf(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+	float b1 = (1 - w0.cos) * a0_inv;
+
+	res->b0 = b1 / 2;
+	res->b1 = b1;
+	res->b2 = b1 / 2;
+	res->a1 = -2*w0.cos	* a0_inv;
+	res->a2 = (1 - alpha)	* a0_inv;
+}
+
+static inline void _biquad_hpf(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+	float b1 = (1 + w0.cos) * a0_inv;
+
+	res->b0 = b1 / 2;
+	res->b1 = -b1;
+	res->b2 = b1 / 2;
+	res->a1 = -2*w0.cos	* a0_inv;
+	res->a2 = (1 - alpha)	* a0_inv;
+}
+
+static inline void _biquad_notch_filter(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+
+	res->b0 = 1 		* a0_inv;
+	res->b1 = -2*w0.cos	* a0_inv;
+	res->b2 = 1		* a0_inv;
+	res->a1 = -2*w0.cos	* a0_inv;
+	res->a2 = (1 - alpha)	* a0_inv;
+}
+
+static inline void _biquad_bpf_peak(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+
+	res->b0 = Q*alpha	* a0_inv;
+	res->b1 = 0;
+	res->b2 = -Q*alpha	* a0_inv;
+	res->a1 = -2*w0.cos	* a0_inv;
+	res->a2 = (1 - alpha)	* a0_inv;
+}
+
+static inline void _biquad_bpf(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+
+	res->b0 = alpha		* a0_inv;
+	res->b1 = 0;
+	res->b2 = -alpha	* a0_inv;
+	res->a1 = -2*w0.cos	* a0_inv;
+	res->a2 = (1 - alpha)	* a0_inv;
+}
+
+static inline void _biquad_allpass_filter(struct biquad_coeff *res, float f, float Q)
+{
+	struct sincos w0 = fastsincos(f/SAMPLES_PER_SEC);
+	float alpha = w0.sin/(2*Q);
+	float a0_inv = 1/(1 + alpha);
+
+	res->b0 = (1 - alpha)	* a0_inv;
+	res->b1 = (-2*w0.cos)	* a0_inv;
+	res->b2 = 1;		// Same as a0
+	res->a1 = res->b1;
+	res->a2 = res->b0;
+}
+
+static inline float biquad_step(struct biquad *bq, float x0)
+{ return _biquad_step(&bq->coeff, &bq->state, x0); }
+
+#define biquad_lpf(bq,f,Q) _biquad_lpf(&(bq)->coeff,f,Q)
+#define biquad_hpf(bq,f,Q) _biquad_hpf(&(bq)->coeff,f,Q)
+#define biquad_notch_filter(bq,f,Q) _biquad_notch_filter(&(bq)->coeff,f,Q)
+#define biquad_bpf_peak(bq,f,Q) _biquad_bpf_peak(&(bq)->coeff,f,Q)
+#define biquad_bpf(bq,f,Q) _biquad_bpf(&(bq)->coeff,f,Q)
+#define biquad_allpass_filter(bq,f,Q) _biquad_allpass_filter(&(bq)->coeff,f,Q)
+
+
+
+================================================================================
+FILE: convert.c
+================================================================================
+
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define SAMPLES_PER_SEC (48000.0)
+
+// Core utility functions and helpers
+#include "util.h"
+#include "lfo.h"
+#include "effect.h"
+#include "biquad.h"
+#include "process.h"
+
+// Effects
+#include "flanger.h"
+#include "echo.h"
+#include "fm.h"
+#include "am.h"
+#include "phaser.h"
+#include "discont.h"
+#include "distortion.h"
+
+static void magnitude_describe(float pot[4]) { fprintf(stderr, "\n"); }
+static void magnitude_init(float pot[4]) {}
+static float magnitude_step(float in) { return u32_to_fraction(magnitude); }
+
+#define EFF(x) { #x, x##_describe, x##_init, x##_step }
+struct effect {
+	const char *name;
+	void (*describe)(float[4]);
+	void (*init)(float[4]);
+	float (*step)(float);
+} effects[] = {
+	EFF(discont),
+	EFF(distortion),
+	EFF(echo),
+	EFF(flanger),
+	EFF(phaser),
+
+	/* "Helper" effects */
+	EFF(am),
+	EFF(fm),
+	EFF(magnitude),
+};
+
+#define UPDATE(x) x += 0.001 * (target_##x - x)
+
+#define BLOCKSIZE 200
+static inline int make_one_noise(int in, int out, struct effect *eff)
+{
+	s32 input[BLOCKSIZE], output[BLOCKSIZE];
+	int nr = read(in, input, sizeof(input));
+	if (nr <= 0)
+		return nr;
+
+	nr /= 4;
+	for (int i = 0; i < nr; i++) {
+		UPDATE(effect_delay);
+
+		float val = process_input(input[i]);
+
+		val = eff->step(val);
+
+		output[i] = process_output(val);
+	}
+	write(out, output, nr * 4);
+	return nr * 4;
+}
+
+int main(int argc, char **argv)
+{
+	float pot[4] = { 0.5, 0.5, 0.5, 0.5 };
+	struct effect *eff = NULL;
+	int input = -1, output = -1;
+	int potnr = 0;
+
+	for (int i = 1; i < argc; i++) {
+		const char *arg = argv[i];
+		char *endptr;
+
+		// Is the argument a floating point number?
+		// The we assume it's a default pot value
+		float val = strtof(arg, &endptr);
+		if (endptr != arg) {
+			if (potnr < 4) {
+				pot[potnr++] = val;
+				continue;
+			}
+			fprintf(stderr, "Too many pot values\n");
+			exit(1);
+		}
+
+		// Is it the name of an effect and we don't have one yet?
+		if (!eff) {
+			for (int i = 0; i < ARRAY_SIZE(effects); i++) {
+				if (!strcmp(arg, effects[i].name))
+					eff = effects+i;
+			}
+			if (eff)
+				continue;
+		}
+
+		if (input < 0) {
+			// We assume first filename is an input file
+			if (!strcmp(arg, "-")) {
+				input = 0;
+				continue;
+			}
+
+			int fd = open(arg, O_RDONLY);
+			if (fd < 0) {
+				perror(arg);
+				exit(1);
+			}
+			input = fd;
+			continue;
+		}
+
+		if (output < 0) {
+			// We assume second filename is an output file
+			if (!strcmp(arg, "-")) {
+				output = 1;
+				continue;
+			}
+
+			int fd = open(arg, O_CREAT | O_WRONLY, 0666);
+			if (fd < 0) {
+				perror(arg);
+				exit(1);
+			}
+			output = fd;
+			continue;
+		}
+
+		fprintf(stderr, "Unrecognized option '%s'\n", arg);
+		exit(1);
+	}
+
+	if (input < 0)
+		input = 0;
+
+	if (output < 0)
+		output = 1;
+
+#ifdef F_SETPIPE_SZ
+	// Limit the output buffer size if we are
+	// writing to a pipe. At least on Linux,
+	// because I have no idea how to do it for
+	// anything else
+	fcntl(output, F_SETPIPE_SZ, 4096);
+#endif
+
+	fprintf(stderr, "Playing %s: ",	eff->name);
+	eff->describe(pot);
+
+	for (;;) {
+		eff->init(pot);
+		if (make_one_noise(input, output, eff) <= 0)
+			break;
+	}
+	return 0;
+}
+
+
+
+================================================================================
+FILE: discont.h
+================================================================================
+
+//
+// Entirely random effect hiding discontinuities in the
+// sequence by picking two different delays, and
+// multiplying them with sin**2/cos**2
+//
+// Approximate a pitch shifter. Not a great one, I'm
+// afraid.
+//
+struct {
+	struct lfo_state lfo;
+	float step;
+} disco;
+
+#define DISCONT_SHIFT 12
+#define DISCONT_STEPS (1 << DISCONT_SHIFT)
+
+void discont_describe(float pot[4])
+{
+	fprintf(stderr, " tonestep=%g\n", pow2(linear(pot[0], -1, 1)));
+}
+
+void discont_init(float pot[4])
+{
+	// Which direction do we walk the samples?
+	// Walking backwards lowers the pitch
+	// Walking forwards raises the pitch
+	// Staying at the same delay keeps the pitch the same
+	//
+	float step = pow2(linear(pot[0], -1, 1));	//  0.5 .. 2
+	disco.step = step - 1;			// -0.5 .. 1
+
+	// We set the LFO to be 2*DISCONT_STEPS
+	// but then we basically just use half
+	// of it twice
+	disco.lfo.step = 1 << (31-DISCONT_SHIFT);
+}
+
+// i is discontinuous when sin**2 is 0
+// ni is discontinuous when cos**2 (aka 1-sin**2) is 0
+float discont_step(float in)
+{
+	// The 'idx << 1' is because we only use half the wave,
+	// we'll use 'sin**2' that is the same in both halves
+	u32 i = (disco.lfo.idx << 1) >> (32 - DISCONT_SHIFT);
+	int ni = (i + DISCONT_STEPS/2) & (DISCONT_STEPS-1);
+	float sin = lfo_step(&disco.lfo, lfo_sinewave);
+
+	float step = disco.step;
+	float delay = step < 0 ? 0 : 2*DISCONT_STEPS*step;
+
+	sample_array_write(in);
+	sin *= sin;
+	float d1 = sample_array_read(delay - i*step) * sin;
+	float d2 = sample_array_read(delay - ni*step) * (1-sin);
+
+	return d1+d2;
+}
+
+
+
+================================================================================
+FILE: distortion.h
+================================================================================
+
+//
+// Distortion/Overdrive effect - waveshaping with multiple modes
+//
+// Provides soft clipping (overdrive) through hard clipping (fuzz)
+// with optional tone control via low-pass filter.
+//
+static struct {
+	float drive;
+	float tone_freq;
+	float level;
+	int mode;  // 0=soft (tanh), 1=hard clip, 2=asymmetric
+	struct biquad tone_filter;
+} distortion;
+
+static inline void distortion_describe(float pot[4])
+{
+	const char *mode_names[] = { "soft", "hard", "asymmetric" };
+
+	fprintf(stderr, " drive=%gx", linear(pot[0], 1, 50));
+	fprintf(stderr, " tone=%g Hz", pot_frequency(pot[1]));
+	fprintf(stderr, " level=%g", pot[2]);
+	fprintf(stderr, " mode=%s\n", mode_names[distortion.mode]);
+}
+
+static inline void distortion_init(float pot[4])
+{
+	// pot[0]: drive/gain (1x - 50x)
+	distortion.drive = linear(pot[0], 1, 50);
+
+	// pot[1]: tone (roll off high frequencies, 220Hz - 6.5kHz)
+	distortion.tone_freq = pot_frequency(pot[1]);
+	biquad_lpf(&distortion.tone_filter, distortion.tone_freq, 0.707f);
+
+	// pot[2]: output level (0 - 100%)
+	distortion.level = pot[2];
+
+	// pot[3]: mode selection
+	if (pot[3] < 0.33f)
+		distortion.mode = 0;  // soft clip (tanh)
+	else if (pot[3] < 0.66f)
+		distortion.mode = 1;  // hard clip
+	else
+		distortion.mode = 2;  // asymmetric
+
+}
+
+// Soft clipping using tanh approximation
+static inline float soft_clip(float x)
+{
+	// Fast tanh approximation: x / (1 + |x|)
+	// Gives smooth saturation curve
+	return x / (1.0f + fabsf(x));
+}
+
+// Hard clipping
+static inline float hard_clip(float x)
+{
+	if (x > 1.0f) return 1.0f;
+	if (x < -1.0f) return -1.0f;
+	return x;
+}
+
+// Asymmetric clipping (tube-like even harmonics)
+static inline float asymmetric_clip(float x)
+{
+	if (x > 0)
+		return soft_clip(x);
+	else
+		return soft_clip(x * 0.7f) * 0.7f;
+}
+
+static inline float distortion_step(float in)
+{
+	// Apply drive
+	float driven = in * distortion.drive;
+
+	// Apply waveshaping based on mode
+	float shaped;
+	switch (distortion.mode) {
+	case 0:
+		shaped = soft_clip(driven);
+		break;
+	case 1:
+		shaped = hard_clip(driven);
+		break;
+	case 2:
+	default:
+		shaped = asymmetric_clip(driven);
+		break;
+	}
+
+	// Apply tone filter
+	float filtered = biquad_step(&distortion.tone_filter, shaped);
+
+	// Apply output level
+	return filtered * distortion.level;
+}
+
+
+
+================================================================================
+FILE: echo.h
+================================================================================
+
+//
+// Minimal echo effect
+//
+static inline void echo_describe(float pot[4])
+{
+	fprintf(stderr, " delay=%g ms", pot[0] * 1000);
+	fprintf(stderr, " lfo=%g ms", pot[2]*4);
+	fprintf(stderr, " feedback=%g\n", pot[3]);
+}
+
+static inline void echo_init(float pot[4])
+{
+	effect_set_delay(pot[0] * 1000);	// delay = 0 .. 1s
+	effect_set_lfo_ms(pot[2]*4);	// LFO = 0 .. 4ms
+	effect_set_feedback(pot[3]);	// feedback = 0 .. 100%
+}
+
+static inline float echo_step(float in)
+{
+	float d = 1 + effect_delay;
+	float out;
+
+	out = sample_array_read(d);
+	sample_array_write(limit_value(in + out * effect_feedback));
+
+	return (in + out)/ 2;
+}
+
+
+
+================================================================================
+FILE: effect.h
+================================================================================
+
+//
+// Shared common state for most effects
+//
+// The effects don't have to use these, but they are here to
+// make some basic things very simple to do.
+//
+float sample_array[SAMPLE_ARRAY_SIZE];
+int sample_array_index;
+
+static float effect_feedback;
+static float effect_delay, target_effect_delay;
+static float effect_depth;
+static struct lfo_state effect_lfo;
+
+#define effect_set_lfo(f)	set_lfo_freq(&effect_lfo, f)
+#define effect_set_lfo_ms(ms)	set_lfo_ms(&effect_lfo, ms)
+#define effect_set_depth(d)	effect_depth = (d)
+#define effect_set_feedback(fb)	effect_feedback = (fb)
+
+#define SAMPLES_PER_MSEC (SAMPLES_PER_SEC * 0.001)
+
+static inline void effect_set_delay(float ms)
+{
+	float samples = ms * SAMPLES_PER_MSEC;
+
+	if (samples > 0 && samples < SAMPLE_ARRAY_SIZE)
+		target_effect_delay = samples;
+}
+
+
+
+================================================================================
+FILE: flanger.h
+================================================================================
+
+// Flanger effect based on the MIT-licensed DaisySP library by Electrosmith
+// which in turn seems to be based on Soundpipe by Paul Batchelor
+static inline void flanger_describe(float pot[4])
+{
+	fprintf(stderr, " freq=%g Hz", pot[0]*pot[0]*10);
+	fprintf(stderr, " delay=%g ms", pot[1]*4);
+	fprintf(stderr, " depth=%g", pot[2]);
+	fprintf(stderr, " feedback=%g\n", pot[3]);
+}
+
+static inline void flanger_init(float pot[4])
+{
+	effect_set_lfo(pot[0]*pot[0]*10);	// lfo = 0 .. 10Hz
+	effect_set_delay(pot[1] * 4);		// delay = 0 .. 4 ms
+	effect_set_depth(pot[2]);		// depth = 0 .. 100%
+	effect_set_feedback(pot[3]);		// feedback = 0 .. 100%
+}
+
+static inline float flanger_step(float in)
+{
+	float d = 1 + effect_delay * (1 + lfo_step(&effect_lfo, lfo_sinewave) * effect_depth);
+	float out;
+
+	out = sample_array_read(d);
+	sample_array_write(limit_value(in + out * effect_feedback));
+
+	return (in + out) / 2;
+}
+
+
+
+================================================================================
+FILE: fm.h
+================================================================================
+
+//
+// Silly frequency modulation signal generator "effect"
+// It doesn't actually care about the input, it's useful
+// mainly for testing the LFO
+//
+static struct lfo_state base_lfo, modulator_lfo;
+static float fm_volume, fm_base_freq, fm_freq_range;
+
+static inline void fm_describe(float pot[4])
+{
+	float freq = pot_frequency(pot[1]);
+	float range = pot[2];
+
+	fprintf(stderr, " volume=%g", pot[0]);
+	fprintf(stderr, " freq=%.0f (%.0f-%.0f) Hz",
+			freq,
+			freq * pow2(-range),
+			freq * pow2( range));
+	fprintf(stderr, " lfo=%g Hz\n", 1 + 10*pot[3]);
+}
+
+static inline void fm_init(float pot[4])
+{
+	fm_volume = pot[0];
+	fm_base_freq = pot_frequency(pot[1]);		// 220Hz - 6.5kHz
+	fm_freq_range = pot[2];				// 110Hz -  13kHz
+	set_lfo_freq(&modulator_lfo, 1 + 10*pot[3]);	// 1..11 Hz
+}
+
+static inline float fm_step(float in)
+{
+	float lfo = lfo_step(&modulator_lfo, lfo_sinewave);
+	float multiplier = pow2(lfo * fm_freq_range);
+	float freq = fm_base_freq * multiplier;
+	set_lfo_freq(&base_lfo, freq);
+	return lfo_step(&base_lfo, lfo_sinewave) * fm_volume;
+}
+
+
+
+================================================================================
+FILE: gensin.c
+================================================================================
+
+#include <math.h>
+#include <stdio.h>
+
+#define STEP_SHIFT 8
+#define STEPS (1 << STEP_SHIFT)
+
+int main(int argc, char **argv)
+{
+	printf("#define QUARTER_SINE_STEP_SHIFT %d\n", STEP_SHIFT);
+	printf("const float quarter_sin[] = {");
+
+	for (int i = 0; i < STEPS+1; i++) {
+		printf("%s%+.8ff,",
+			!(i & 3) ? "\n\t" : " ",
+			sin(i*M_PI/STEPS/2));
+	}
+
+	printf(" %+.8ff\n};\n", 1.0);
+}
+
+
+
+================================================================================
+FILE: lfo.h
+================================================================================
+
+//
+// Our LFO generates a quarter cycle (0 .. 1) from a 30-bit cycle
+// and when it overflows it changes the quarter counter, which
+// then turns 0..1 into a series of [ 0..1 , 1..0 , 0..-1, -1..0 ]
+//
+// The quarter information is naturally in the two high
+// bits of the index
+//
+// Every audio cycle we update the LFO counter by 'lfo_step',
+// so the cycle of one quarter is
+//
+//     t = 2**30 / SAMPLES_PER_SEC / lfo_step
+//
+// and a full cycle is four times that (ie the full 32-bit cycle).
+//
+// Calling that (2**32)/SAMPLES_PER_SEC "F_STEP", we get
+//
+//     T = F_STEP / lfo_step
+//     freq = lfo_step / F_STEP
+//             => lfo_step = freq * F_STEP
+//     ms = 1000 * T = 1000 * F_STEP / lfo_step
+//             => lfo_step = 1000 * F_STEP / ms
+//
+#define F_STEP (TWO_POW_32/SAMPLES_PER_SEC)
+
+enum lfo_type {
+	lfo_sinewave,
+	lfo_triangle,
+	lfo_sawtooth,
+};
+
+struct lfo_state {
+	u32 idx, step;
+};
+
+// Use this for LFO initializers.
+#define LFO_FREQ(x) .step = (x)*F_STEP
+
+static inline void set_lfo_step(struct lfo_state *lfo, float step)
+{
+	lfo->step = (u32) rintf(step);
+}
+
+void set_lfo_freq(struct lfo_state *lfo, float freq)
+{
+	set_lfo_step(lfo, freq * F_STEP);
+}
+
+void set_lfo_ms(struct lfo_state *lfo, float ms)
+{
+	// Max 10kHz
+	if (ms < 0.1)
+		ms = 0.1;
+	set_lfo_step(lfo, 1000 * F_STEP / ms);
+}
+
+float lfo_step(struct lfo_state *lfo, enum lfo_type type)
+{
+	u32 now = lfo->idx;
+	u32 next = now + lfo->step;
+
+	lfo->idx = next;
+
+	if (type == lfo_sawtooth)
+		return u32_to_fraction(now);
+
+	float val;
+	u32 quarter = now >> 30;
+	now <<= 2;
+
+	// Second and fourth quarter reverses direction
+	if (quarter & 1)
+		now = ~now;
+
+	if (type == lfo_sinewave) {
+		u32 idx = now >> (32-QUARTER_SINE_STEP_SHIFT);
+		float a = quarter_sin[idx];
+		float b = quarter_sin[idx+1];
+
+		now <<= QUARTER_SINE_STEP_SHIFT;
+		val = a + (b-a)*u32_to_fraction(now);
+	} else {
+		val = u32_to_fraction(now);
+	}
+
+	// Last two quarters are negative
+	if (quarter & 2)
+		val = -val;
+	return val;
+}
+
+
+
+================================================================================
+FILE: Makefile
+================================================================================
+
+CC = gcc
+CFLAGS = -Wall -O2
+LDLIBS = -lm
+
+PYTHON = python3
+PLAY = ffplay -v fatal -nodisp -autoexit -f s32le -ar 48000 -ch_layout mono -i pipe:0
+
+effects = flanger echo fm phaser discont am distortion
+flanger_defaults = 0.6 0.6 0.6 0.6
+echo_defaults = 0.3 0.3 0.3 0.3
+fm_defaults = 0.25 0.25 0.5 0.5
+am_defaults = 0.25 0.25 0.5 0.5
+phaser_defaults = 0.3 0.3 0.5 0.5
+discont_defaults = 0.8 0.1 0.2 0.2
+distortion_defaults = 0.5 0.6 0.8 0.0
+
+HEADERS = am.h biquad.h discont.h distortion.h echo.h effect.h flanger.h  fm.h  gensin.h lfo.h  phaser.h  util.h process.h
+
+default:
+	@echo "Pick one of" $(effects)
+
+play: output.raw
+	$(PLAY) < output.raw
+
+visualize: input.raw output.raw magnitude.raw outmagnitude.raw
+	$(PYTHON) visualize.py input.raw output.raw magnitude.raw outmagnitude.raw
+
+%.raw: %.mp3
+	ffmpeg -y -v fatal -i $< -f s32le -ar 48000 -ac 1 $@
+
+$(effects): input.raw convert
+	./convert $@ $($@_defaults) input.raw output.raw
+	ffmpeg -y -v fatal -f s32le -ar 48000 -ac 1 -i output.raw -f mp3 $@.mp3
+	$(PLAY) < output.raw
+
+convert.o: CFLAGS += -ffast-math -fsingle-precision-constant # -Wdouble-promotion -Wfloat-conversion
+convert.o: $(HEADERS)
+
+convert: convert.o
+
+output.raw: input.raw convert
+	./convert echo $(echo_defaults) input.raw output.raw
+
+magnitude.raw: input.raw convert
+	./convert magnitude 0.1 0.0001 0 0 input.raw magnitude.raw
+
+outmagnitude.raw: output.raw convert
+	./convert magnitude 0.1 0.0001 0 0 output.raw outmagnitude.raw
+
+input.raw: BassForLinus.mp3
+	ffmpeg -y -v fatal -i $< -f s32le -ar 48000 -ac 1 $@
+
+SeymourDuncan: convert
+	for i in ~/Wav/Seymour\ Duncan/*; do ffmpeg -y -v fatal -i "$$i" -f s32le -ar 48000 -ac 1 pipe:1 | ./convert phaser $(phaser_defaults) | $(PLAY) ; done
+
+gensin.h: gensin
+	./gensin > gensin.h
+
+gensin: gensin.c
+
+test: test-sincos test-lfo
+
+tests/lfo: tests/lfo.o
+tests/lfo.o: $(HEADERS)
+test-lfo: tests/lfo
+	tests/lfo
+
+tests/sincos: tests/sincos.o
+tests/sincos.o: $(HEADERS)
+test-sincos: tests/sincos
+	tests/sincos
+
+.PHONY: default play $(effects) SeymourDuncan visualize test-lfo test-sincos
+
+
+
+================================================================================
+FILE: phaser.h
+================================================================================
+
+struct {
+	struct lfo_state lfo;
+	struct biquad_coeff coeff;
+	float s0[2], s1[2], s2[2], s3[2];
+	float center_f, octaves, Q, feedback;
+} phaser;
+
+void phaser_describe(float pot[4])
+{
+	float ms = cubic(pot[0], 25, 2000);
+	float feedback = linear(pot[1], 0, 0.75);
+	float f = pot_frequency(pot[2]);
+	float octaves = 0.5;
+	float Q = linear(pot[3], 0.25, 2);
+
+	float lo = pow2(-octaves) * f;
+	float hi = pow2( octaves) * f;
+
+	fprintf(stderr, " lfo=%g ms", ms);
+	fprintf(stderr, " f=%.0f (%.0f - %.0f) Hz", f, lo, hi);
+	fprintf(stderr, " feedback=%g", feedback);
+	fprintf(stderr, " Q=%g\n", Q);
+}
+
+void phaser_init(float pot[4])
+{
+	float ms = cubic(pot[0], 25, 2000);		// 25ms .. 2s
+	set_lfo_ms(&phaser.lfo, ms);
+	phaser.feedback = linear(pot[1], 0, 0.75);
+
+	phaser.center_f = pot_frequency(pot[2]);		// 220Hz .. 6.5kHz
+	phaser.octaves = 0.5;				// 155Hz .. 9kHz
+	phaser.Q = linear(pot[3], 0.25, 2);
+}
+
+float phaser_step(float in)
+{
+	float lfo = lfo_step(&phaser.lfo, lfo_triangle);
+	float freq = pow2(lfo*phaser.octaves) * phaser.center_f;
+	float out;
+
+	_biquad_allpass_filter(&phaser.coeff, freq, phaser.Q);
+
+	out = in + phaser.feedback * phaser.s3[0];
+	out = biquad_step_df1(&phaser.coeff, out, phaser.s0, phaser.s1);
+	out = biquad_step_df1(&phaser.coeff, out, phaser.s1, phaser.s2);
+	out = biquad_step_df1(&phaser.coeff, out, phaser.s2, phaser.s3);
+
+	return limit_value(in + out);
+}
+
+
+
+================================================================================
+FILE: process.h
+================================================================================
+
+//
+// Do the 'sample to float' and 'float to sample' processing
+// together with basic noise gating
+//
+
+static unsigned int magnitude;
+
+#define SAMPLE_TO_FLOAT_MULTIPLIER (1.0 / 0x80000000)
+#define FLOAT_TO_SAMPLE_MULTIPLIER (0x80000000 / 1.0)
+
+static inline float process_input(s32 sample)
+{
+	static int max, min;
+	const float max_gate = SAMPLE_TO_FLOAT_MULTIPLIER;
+	const float min_gate = max_gate / 100;
+	static float noise_gate = SAMPLE_TO_FLOAT_MULTIPLIER / 100;
+
+	//
+	// We'll track max and min rather than
+	// the maximum absolute value, in case
+	// the input is unbalanced
+	//
+	if (sample > max)
+		max = sample;
+	if (sample < min)
+		min = sample;
+	magnitude = max - min;
+
+	//
+	// This is sample-rate dependent, but
+	// we don't really care. This results in
+	// a half-life of roughly 3ksamples or
+	// roughly 60ms at 48kHz sample rate.
+	//
+	max -= (max >> 12)+1;
+	min -= (min >> 12)-1;
+
+	//
+	// Random fixed noise-gate looking at the
+	// top 10 bits of the signal magnitude (which
+	// is approx 1mVrms per step)
+	//
+	if (magnitude >> 22) {
+		noise_gate *= 1.001;
+		if (noise_gate > max_gate)
+			noise_gate = max_gate;
+	} else {
+		noise_gate *= 0.999;
+		if (noise_gate < min_gate)
+			noise_gate = min_gate;
+	}
+
+	return sample * noise_gate;
+}
+
+static inline s32 process_output(float out)
+{
+	s32 sample = (int)(out * FLOAT_TO_SAMPLE_MULTIPLIER);
+
+	// Check for overflow on float->int conversion
+	// by verifying the sign of the result
+	//
+	// Note that this won't catch overflows that are
+	// due to out _way_ outside the [-1,1] range. So
+	// we assume the effects are at least minimally
+	// careful
+	if (out >= 0) {
+		if (sample < 0)
+			sample = 0x7fffffff;
+	} else {
+		if (sample > 0)
+			sample = 0x80000000;
+	}
+	return sample;
+}
+
+
+
+================================================================================
+FILE: README.md
+================================================================================
+
+## Another silly guitar-pedal-related repo
+
+The digital [RP2354 and TAC5112-based guitar
+pedal](https://github.com/torvalds/GuitarPedal) actually does work, even
+if I'm not thrilled about some of my analog interface choices (ie the
+pots in particular, and I'm growing to hate the clicky footswitch even
+if I do love how it also doubles as a boot selector switch for
+programming). 
+
+But while the hardware design is archived while I ponder the mysteries
+of life and physical user interfaces, I'm still looking at the digital
+effects on the side.  But right now purely in a "since it's all digital,
+let's simulate it and not worry about the hardware so much". 
+
+These are -- like the analog circuits that started my journey -- toy
+effects that you shouldn't take seriously.  The main design goal has
+been to learn about digital audio processing basics.  Exactly like the
+guitar pedal was about learning about the hardware side. 
+
+So no fancy FFT-based vocoders or anything like that, just IIR filters
+and basic delay loops.  Everything is "single sample in, single sample
+out with no latency".  The sample may be stored in a delay loop to be
+looked up later (for eacho effects), but it's not doing any real
+processing. 
+
+I was happy with how the TAC5112 had sub-ms latencies for feeding
+through the ADC->DAC chain, and this is meant to continue exactly that
+kind of thing.  Plus it's not like I've done any of this before, so it's
+all very basic and simple just by virtue of me being a newbie. 
+
+Put another way: the IIR filters aren't the fancy AI "emulate a cab"
+kind of a modern pedal or guitar amp.  No, while they do emulate analog
+circuits like a phaser, they do so by emulating the effects of a RC
+network with just a digital all-pass filter, not by doing anything
+actually *clever*. 
+
+Also note that the python visualizer tool has been basically written by
+vibe-coding.  I know more about analog filters -- and that's not saying
+much -- than I do about python.  It started out as my typical "google
+and do the monkey-see-monkey-do" kind of programming, but then I cut out
+the middle-man -- me -- and just used Google Antigravity to do the audio
+sample visualizer.
+
+
+
+================================================================================
+FILE: util.h
+================================================================================
+
+// Various utility functions mainly for
+// imprecise but fast floating point
+
+//
+// Sized integer types I'm used to from the kernel.
+//
+// I dislike 'uint32_t' as being unwieldly (and historically not
+// available in all environments, so you end up with a mess of
+// configuration), and 'uint' as not having a well-defined size.
+//
+// I'm not using the 64-bit types yet, but the RP2354 has 32x32
+// multiplies giving a 64-bit result, so I'm considering doing
+// some fixed-point math, and this preps for it.
+//
+typedef int s32;
+typedef unsigned int u32;
+typedef long long s64;
+typedef unsigned long long u64;
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+#define TWO_POW_32 (4294967296.0f)
+#define LN2 0.69314718055994530942
+
+#define pow2(x) pow(2,x)
+
+// Turn 0..1 into a range
+#define linear(pot, a, b)	((a)+(pot)*((b)-(a)))
+#define cubic(pot, a, b)	linear((pot)*(pot)*(pot), a, b)
+
+// "reasonable frequency range": 220Hz - 6.5kHz with pot center at 1kHz
+#define pot_frequency(pot)	cubic(pot, 220, 6460)
+
+//
+// Smoothly limit x to -1 .. 1
+//
+static inline float limit_value(float x)
+{
+	return x / (1 + fabsf(x));
+}
+
+static inline float u32_to_fraction(u32 val)
+{
+	return (1.0/TWO_POW_32) * val;
+}
+
+static inline u32 fraction_to_u32(float val)
+{
+	return (u32) (val * TWO_POW_32);
+}
+
+// Max ~1.25s delays at ~52kHz
+#define SAMPLE_ARRAY_SIZE 65536
+#define SAMPLE_ARRAY_MASK (SAMPLE_ARRAY_SIZE-1)
+extern float sample_array[SAMPLE_ARRAY_SIZE];
+extern int sample_array_index;
+
+static inline void sample_array_write(float val)
+{
+	u32 idx = SAMPLE_ARRAY_MASK & ++sample_array_index;
+	sample_array[idx] = val;
+}
+
+static inline float sample_array_read(float delay)
+{
+	int i = (int) delay;
+	float frac = delay - i;
+	int idx = sample_array_index - i;
+
+	float a = sample_array[SAMPLE_ARRAY_MASK & idx];
+	float b = sample_array[SAMPLE_ARRAY_MASK & ++idx];
+	return a + (b-a)*frac;
+}
+
+// We can calculate sin/cos at the same time using
+// the table lookup. It's "GoodEnough(tm)" and with
+// 256 entries it's good to about 5.3 digits of
+// precision if I tested it right.
+//
+// Don't use this for real work. For audio? It's fine.
+#include "gensin.h"
+
+#define QUARTER_SINE_STEPS (1<< QUARTER_SINE_STEP_SHIFT)
+
+struct sincos { float sin, cos; };
+
+// positive phase numbers only, please..
+struct sincos fastsincos(float phase)
+{
+	phase *= 4;
+	int quadrant = (int)phase;
+	phase -= quadrant;
+
+	phase *= QUARTER_SINE_STEPS;
+	int idx = (int) phase;
+	phase -= idx;
+
+	float a = quarter_sin[idx];
+	float b = quarter_sin[idx+1];
+
+	float x = a + (b-a)*phase;
+
+	idx = QUARTER_SINE_STEPS - idx;
+	a = quarter_sin[idx];
+	b = quarter_sin[idx-1];
+
+	float y = a + (b-a)*phase;
+
+	if (quadrant & 1) {
+		float tmp = -x; x = y; y = tmp;
+	}
+	if (quadrant & 2) {
+		x = -x; y = -y;
+	}
+
+	return (struct sincos) { x, y };
+}
+
+
+
+================================================================================
+FILE: visualize.py
+================================================================================
+
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib.widgets import RangeSlider, RectangleSelector, RadioButtons
+
+import os
+import argparse
+
+# --- Constants ---
+INITIAL_WINDOW_SEC = 3600.0
+BYTES_PER_SAMPLE = 4
+# MAX_WIDTH_SEC removed, utilizing self.max_samples instead
+MAX_PLOT_POINTS = 5000   # Maximum points to plot per line
+
+class WaveformVisualizer:
+    def __init__(self, filenames, rate, min_zoom_samples=100):
+        self.rate = rate
+        self.navigating = False
+        self.filenames = filenames
+        self.min_zoom_samples = min_zoom_samples
+
+        # X-Axis Mode
+        self.x_mode = 'Time'
+
+        self.mapped_files = []
+        self.lines = []
+        self.max_samples = 0
+
+        # Load files
+        for f in filenames:
+            try:
+                fsize = os.path.getsize(f)
+                samples = fsize // BYTES_PER_SAMPLE
+                mm = np.memmap(f, dtype=np.int32, mode='r', shape=(samples,))
+                self.mapped_files.append((mm, os.path.basename(f)))
+                self.max_samples = max(self.max_samples, samples)
+            except Exception as e:
+                print(f"Error opening {f}: {e}")
+
+        if not self.mapped_files:
+            return
+
+        # Pre-allocate X-axis buffer to avoid allocations during plot updates
+
+        self.t_buffer = np.zeros(MAX_PLOT_POINTS, dtype=np.float64)
+        # Pre-allocate index buffer 0..N-1
+        self.index_buffer = np.arange(MAX_PLOT_POINTS, dtype=np.float64)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.fig, self.ax = plt.subplots(figsize=(12, 6))
+        # Manual "tight layout" to maximize space but keep room for slider
+        plt.subplots_adjust(left=0.08, right=0.95, top=0.95, bottom=0.20)
+
+        # Create line objects
+        for _, name in self.mapped_files:
+            line, = self.ax.plot([], [], linewidth=0.8, label=name)
+            self.lines.append(line)
+
+        self.ax.grid(True, which='both', linestyle=':', alpha=0.5)
+        self.ax.set_xlabel("Time (s)")
+        self.ax.set_ylabel("Amplitude")
+        self.ax.legend(loc='upper right', fontsize='x-small')
+
+        # --- X-Axis Formatter ---
+        def x_fmt(x, pos):
+            if self.x_mode == 'Samples':
+                return f"{int(x)}"
+            # Time mode
+            t = x / self.rate
+            return f"{t:.3f}"
+
+        self.ax.xaxis.set_major_formatter(ticker.FuncFormatter(x_fmt))
+
+        # --- Y-Axis Formatter ---
+        self.y_mode = 'Volt'
+        def y_fmt(x, pos):
+            if self.y_mode == 'Raw':
+                val = np.uint32(x)
+                return f"{val:09_X}"
+            # Do "Engineering mode" by hand
+            x = x / 2147483648
+            suffix, milli = "", "ᴇ-3"
+            if self.y_mode == 'Volt':
+                # Assuming 1Vrms full-range signal
+                x = x * 1.4142
+                suffix, milli = "V", "mV"
+            if x == 0:
+                return "0"+suffix
+            if abs(x) < 0.1:
+                x = x*1000
+                suffix = milli
+            return f"{x:.2f}"+suffix
+
+        self.ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
+
+        # RangeSlider setup
+        ax_slider = plt.axes([0.15, 0.05, 0.50, 0.03])
+        # Default Init in Samples (will be reset by set_x_mode)
+        self.slider = RangeSlider(ax_slider, 'Pos', 0, self.max_samples, valinit=(0, INITIAL_WINDOW_SEC * self.rate))
+
+        # Re-position the value text to be below the slider
+        self.slider.valtext.set_y(-1)
+        self.slider.valtext.set_horizontalalignment('center')
+        self.slider.valtext.set_position((0.5, -1))
+
+        self.slider.on_changed(self.update_slider)
+
+        # RadioButtons for X-axis Mode
+        ax_radio_x = plt.axes([0.70, 0.05, 0.12, 0.10])
+        self.radio_x = RadioButtons(ax_radio_x, ('Time', 'Samples'), active=0)
+
+        def set_x_mode(label):
+            self.x_mode = label
+            self.ax.xaxis.set_major_formatter(ticker.FuncFormatter(x_fmt))
+
+            # Update Slider View
+            # Check if slider.val is tuple or array
+            val = self.slider.val
+            current_start = val[0]
+            current_end = val[1]
+
+            # Alternative: read actual plot limits (safer)
+            xlim = self.ax.get_xlim()
+            current_start_sample = xlim[0]
+            current_end_sample = xlim[1]
+
+            max = self.max_samples
+            if self.x_mode == 'Time':
+                # Switching TO Time
+                max, suffix = max / self.rate, "s"
+
+                # Reconfigure slider for Seconds
+                self.slider.valmin = 0.0
+                self.slider.valmax = max
+                # RangeSlider doesn't support valfmt directly for two values in typical API,
+                # but we can try to update axes if needed. standard RangeSlider doesn't show text value.
+
+                new_start = current_start_sample / self.rate
+                new_end = current_end_sample / self.rate
+            else:
+                # Switching TO Samples
+                max, suffix = max / 1000, "kSamples"
+                if max > 10000:
+                        max, suffix = max / 1000, "MSamples"
+
+                # Reconfigure slider for Samples
+                self.slider.valmin = 0
+                self.slider.valmax = self.max_samples
+
+                new_start = current_start_sample
+                new_end = current_end_sample
+
+            self.slider.label.set_text(f"({max:.1f} {suffix})")
+
+            # Reset slider axis limits
+            self.slider.ax.set_xlim(self.slider.valmin, self.slider.valmax)
+
+            old_eventson = self.slider.eventson
+            self.slider.eventson = False
+            self.slider.set_val((new_start, new_end))
+            self.slider.eventson = old_eventson
+
+            # Manually trigger text update (since eventson=False)
+            self.update_slider_text((new_start, new_end))
+
+            self.fig.canvas.draw_idle()
+
+        self.radio_x.on_clicked(set_x_mode)
+
+        # Trigger default mode setup
+        set_x_mode('Time')
+
+        # RadioButtons for Y-axis Mode
+        ax_radio_y = plt.axes([0.85, 0.05, 0.12, 0.10])
+        self.radio = RadioButtons(ax_radio_y, ('Raw', 'Scaled', 'Volt'), active=2)
+
+        def set_y_mode(label):
+            self.y_mode = label
+            self.ax.yaxis.set_major_formatter(ticker.FuncFormatter(y_fmt))
+
+            # Update labels
+            if label == 'Raw':
+                 self.ax.set_ylabel("Amplitude (Raw)")
+            elif label == 'Scaled':
+                 self.ax.set_ylabel("Amplitude (Normalized)")
+            elif label == 'Volt':
+                 self.ax.set_ylabel("Amplitude (Volts)")
+
+            self.fig.canvas.draw_idle()
+
+        self.radio.on_clicked(set_y_mode)
+
+        # Scroll Zoom setup
+        self.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
+        self.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.ax.callbacks.connect('xlim_changed', self.on_xlim_changed)
+
+        # Custom Rectangle Selector
+        self.rs = RectangleSelector(
+            self.ax, self.on_select,
+            useblit=True,
+            button=[1],  # Left mouse button
+            minspanx=5, minspany=5,
+            spancoords='pixels',
+            interactive=False
+        )
+
+        # Initial View
+        self.update_view(0, INITIAL_WINDOW_SEC * self.rate)
+
+        # Explicitly sync slider after initial view to ensure it matches the plot limits
+        # We read back the actual limits because update_view might have clamped the window
+        # (e.g. if the file is smaller than INITIAL_WINDOW_SEC)
+
+        current_xlim = self.ax.get_xlim()
+        start_samp, end_samp = current_xlim[0], current_xlim[1]
+
+        if self.x_mode == 'Time':
+            s = start_samp / self.rate
+            e = end_samp / self.rate
+            self.slider.set_val((s, e))
+            self.update_slider_text((s, e))
+        else:
+             self.slider.set_val((start_samp, end_samp))
+             self.update_slider_text((start_samp, end_samp))
+
+        plt.show()
+
+    def get_chunk(self, start_sample, window_samples):
+        # start_sample is a float from matplotlib axes often, cast to int
+        start_sample = int(start_sample)
+        window_samples = int(window_samples)
+
+        # Ensure we don't request negative start
+        start_sample = max(0, start_sample)
+
+        end_sample = start_sample + window_samples
+
+        # Determine downsampling step to keep plot fast
+        total_samples = window_samples
+        step = 1
+        if total_samples > MAX_PLOT_POINTS:
+            step = int(np.ceil(total_samples / MAX_PLOT_POINTS))
+
+        global_min_y, global_max_y = 2147483647, -2147483648
+        has_data = False
+
+        for line, (mm, _) in zip(self.lines, self.mapped_files):
+            if start_sample >= mm.size:
+                line.set_data([], [])
+                continue
+
+            # Safe end for this specific file
+            safe_end = min(end_sample, mm.size)
+            if safe_end <= start_sample:
+                 line.set_data([], [])
+                 continue
+
+            # Strided slice (View into memory map - very fast)
+            chunk = mm[start_sample:safe_end:step]
+
+            if chunk.size > 0:
+                # Generate X Axis without allocation using pre-allocated buffer
+                # We use the shared self.t_buffer (now essentially indices)
+
+                current_count = chunk.size
+                if current_count > len(self.t_buffer):
+                    # Should rarely happen with correct step logic, but resize if needed
+                    self.t_buffer = np.zeros(current_count, dtype=np.float64)
+
+                # In-place generation of sample axis:
+                # 1. Fill with 0..N-1
+                # 2. Scale by step
+                # 3. Add start_sample
+
+                # View into the result buffer
+                target_buffer = self.t_buffer[:current_count]
+
+                # Copy pre-calculated indices 0..N-1
+                np.copyto(target_buffer, self.index_buffer[:current_count])
+
+                # Apply scaling and offset in-place
+                target_buffer *= step
+                target_buffer += start_sample
+
+                line.set_data(target_buffer, chunk)
+
+                # Show markers if zooming in enough (step must be 1 to show true samples)
+                if step == 1 and chunk.size < 300:
+                    line.set_marker('.')
+                    line.set_markersize(3)
+                else:
+                    line.set_marker("")
+
+                global_min_y = min(global_min_y, np.min(chunk))
+                global_max_y = max(global_max_y, np.max(chunk))
+                has_data = True
+            else:
+                line.set_data([], [])
+
+        return has_data, global_min_y, global_max_y
+
+    def update_view(self, start_sample, width_samples):
+        """Core update logic: loads data and sets limits (Constrained Mode)."""
+        if self.navigating: return
+        self.navigating = True
+        try:
+            # Clamp width
+            width_samples = max(self.min_zoom_samples, min(width_samples, self.max_samples))
+
+            # Clamp start time
+            start_sample = max(0, min(start_sample, self.max_samples))
+
+            has_data, min_y, max_y = self.get_chunk(start_sample, width_samples)
+
+            # IMPORTANT: Set limits on the MAIN axes, explicitly using self.ax
+            self.ax.set_xlim(start_sample, start_sample + width_samples)
+
+            # Tight Y-axis scaling logic
+            if has_data and max_y > min_y:
+                # Symmetric zoom centered at 0
+                max_val = max(abs(min_y), abs(max_y))
+                min_val = 1670000 # very approximately 1.1mV
+
+                if max_val < min_val:
+                    max_val = min_val
+                else:
+                    max_val *= 1.05
+
+                self.ax.set_ylim(-max_val, max_val)
+            else:
+                 # Default fallback if no data (-1.0 to 1.0 equivalent)
+                 self.ax.set_ylim(-2147483648, 2147483648)
+
+            self.fig.canvas.draw_idle()
+        finally:
+            self.navigating = False
+
+    def update_slider_text(self, val):
+        """Helper to update slider texts (Width and End Point)."""
+        start_val, end_val = val
+        width = end_val - start_val
+
+    def update_slider_text(self, val):
+        """Helper to update slider texts (Width and End Point)."""
+        start_val, end_val = val
+        width = end_val - start_val
+
+        if self.x_mode == 'Time':
+            self.slider.valtext.set_text(f"Window: {start_val:.3f} + {width:.3f} s")
+        else:
+            self.slider.valtext.set_text(f"Window: {int(start_val)} + {int(width)}")
+
+    def update_slider(self, val):
+        """Callback for slider change."""
+        self.update_slider_text(val)
+
+        if self.navigating: return
+
+        # Val is (min, max)
+        start_val, end_val = val
+        width_val = end_val - start_val
+
+        # Convert to samples
+        if self.x_mode == 'Time':
+            start_sample = start_val * self.rate
+            width_samples = width_val * self.rate
+        else:
+            start_sample = start_val
+            width_samples = width_val
+
+        # Fallback for init
+        if width_samples <= 0: width_samples = INITIAL_WINDOW_SEC * self.rate
+
+        self.update_view(start_sample, width_samples)
+
+    def on_scroll(self, event):
+        """Handle zoom."""
+        if event.inaxes != self.ax: return
+
+        xlim = self.ax.get_xlim()
+        cur_width = xlim[1] - xlim[0]
+
+        scale_factor = 0.8 if event.button == 'up' else 1.2
+        new_width = cur_width * scale_factor
+
+        # Clamp zoom
+        new_width = max(self.min_zoom_samples, min(new_width, self.max_samples))
+
+        # Center zoom
+        rel_x = (event.xdata - xlim[0]) / cur_width
+        new_start = event.xdata - (new_width * rel_x)
+
+        # Clamp bounds
+        new_start = max(0, min(new_start, self.max_samples - new_width))
+
+        # Set the plot limits FIRST
+        self.ax.set_xlim(new_start, new_start + new_width)
+
+        # Then update slider
+        if self.x_mode == 'Time':
+             s = new_start / self.rate
+             e = (new_start + new_width) / self.rate
+             self.slider.set_val((s, e))
+             self.update_slider_text((s, e))
+        else:
+             self.slider.set_val((new_start, new_start + new_width))
+             self.update_slider_text((new_start, new_start + new_width))
+
+    def on_xlim_changed(self, ax):
+        """Handle external xlim changes (e.g. from Toolbar). Unconstrained load."""
+        if self.navigating: return
+        self.navigating = True
+        try:
+            xlim = ax.get_xlim()
+            start_sample = xlim[0]
+            width = xlim[1] - xlim[0]
+
+            # Reload data (No constraints)
+            self.get_chunk(start_sample, width)
+
+            # Sync slider silently
+            # Sync slider silently
+            if hasattr(self, 'slider'):
+                old_eventson = self.slider.eventson
+                self.slider.eventson = False
+
+                if self.x_mode == 'Time':
+                    s = start_sample / self.rate
+                    e = (start_sample + width) / self.rate
+                    self.slider.set_val((s, e))
+                else:
+                    self.slider.set_val((start_sample, start_sample + width))
+
+                self.slider.eventson = old_eventson
+        finally:
+            self.navigating = False
+
+    def on_key(self, event):
+        """Handle keyboard shortcuts (Independent Navigation)."""
+        if self.navigating: return
+        self.navigating = True
+        try:
+            # Get properties
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
+
+            width = xlim[1] - xlim[0]
+            height = ylim[1] - ylim[0]
+
+            changed = False
+
+            if event.key == 'right':
+                shift = width * 0.25
+                self.ax.set_xlim(xlim[0] + shift, xlim[1] + shift)
+                changed = True
+            elif event.key == 'left':
+                shift = width * 0.25
+                self.ax.set_xlim(xlim[0] - shift, xlim[1] - shift)
+                changed = True
+            elif event.key == 'up':
+                shift = height * 0.25
+                self.ax.set_ylim(ylim[0] + shift, ylim[1] + shift)
+                changed = True
+            elif event.key == 'down':
+                shift = height * 0.25
+                self.ax.set_ylim(ylim[0] - shift, ylim[1] - shift)
+                changed = True
+            elif event.key == 'pagedown': # Zoom In (0.5x width)
+                center = (xlim[0] + xlim[1]) / 2
+                new_width = width * 0.5
+                new_width = max(new_width, self.min_zoom_samples)
+                new_start = center - (new_width / 2)
+                # Clamp start
+                new_start = max(0, min(new_start, self.max_samples - new_width))
+                self.ax.set_xlim(new_start, new_start + new_width)
+                changed = True
+            elif event.key == 'pageup': # Zoom Out (2x width)
+                center = (xlim[0] + xlim[1]) / 2
+                new_width = width * 2.0
+                new_width = min(new_width, self.max_samples)
+                new_start = center - (new_width / 2)
+                # Clamp start
+                new_start = max(0, min(new_start, self.max_samples - new_width))
+                self.ax.set_xlim(new_start, new_start + new_width)
+                changed = True
+
+            if changed:
+                # Reload data for new X view
+                # We need new xlim
+                new_xlim = self.ax.get_xlim()
+                self.get_chunk(new_xlim[0], new_xlim[1] - new_xlim[0])
+
+                # Sync slider silently
+                if hasattr(self, 'slider'):
+                    old_eventson = self.slider.eventson
+                    self.slider.eventson = False
+
+                    if self.x_mode == 'Time':
+                        s = new_xlim[0] / self.rate
+                        e = new_xlim[1] / self.rate
+                        self.slider.set_val((s, e))
+                        self.update_slider_text((s, e))
+                    else:
+                        self.slider.set_val((new_xlim[0], new_xlim[1]))
+                        self.update_slider_text((new_xlim[0], new_xlim[1]))
+
+                    self.slider.eventson = old_eventson
+
+                self.fig.canvas.draw_idle()
+
+        finally:
+             self.navigating = False
+
+        # Space Bar (Reset Zoom) - Only reset Y axis to fit visible data (Auto-scale)
+        if event.key == ' ':
+            xlim = self.ax.get_xlim()
+            width = xlim[1] - xlim[0]
+            self.update_view(xlim[0], width)
+
+    def on_select(self, eclick, erelease):
+        """Handle rectangle selection."""
+        if self.navigating: return
+
+        # Calculate new ranges from the selection
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+
+        start_sample = min(x1, x2)
+        end_sample = max(x1, x2)
+        width = end_sample - start_sample
+
+        # Enforce minimum width
+        if width < self.min_zoom_samples:
+            center = (start_sample + end_sample) / 2
+            width = self.min_zoom_samples
+            start_sample = center - width / 2
+
+        # Clamp start time
+        start_sample = max(0, min(start_sample, self.max_samples - width))
+
+        # Update view (which reloads data)
+        # Note: update_view handles height scaling automatically based on data,
+        # but if we want to respect the user's Y selection we might need to override.
+        # However, for audio, usually we want to see the full amplitude or auto-scaled.
+        # The user asked for "arbitrary zooming be implemented", which implies Y might be important.
+        # But our `update_view` forces Y symmetry currently.
+        # Let's trust `update_view` for now as it handles the complexity of data loading.
+        # If we really want to zoom to the Y rectangle, we would set ylim manually.
+        # Given the previous context was about "Zoom to Rectangle" interfering with "movement and zoom control",
+        # let's try to match the "Zoom to Rectangle" behavior which DOES set specific X/Y limits.
+
+        # However, our update_view logic re-calculates Y based on data in the new X range...
+        # Let's modify the flow slightly: use update_view for X, then apply Y if it makes sense?
+        # Actually, standard audio visualization often keeps Y symmetric or 0-1.
+        # If the user draws a small box on a peak, they expect to zoom into that peak (Y-wise too).
+
+        # So let's set limits directly, similar to on_scroll/on_key, but for both axes.
+
+        if self.navigating: return
+        self.navigating = True
+        try:
+             # X Axis Logic
+             new_width = max(self.min_zoom_samples, min(width, self.max_samples))
+             # If user selected < min width, we centered it above.
+
+             self.get_chunk(start_sample, new_width)
+
+             self.ax.set_xlim(start_sample, start_sample + new_width)
+
+             # Y Axis Logic
+             y_min = min(y1, y2)
+             y_max = max(y1, y2)
+
+             self.ax.set_ylim(y_min, y_max)
+
+             self.fig.canvas.draw_idle()
+
+             if hasattr(self, 'slider'):
+                 old_eventson = self.slider.eventson
+                 self.slider.eventson = False
+
+                 if self.x_mode == 'Time':
+                     s = start_sample / self.rate
+                     e = (start_sample + new_width) / self.rate
+                     self.slider.set_val((s, e))
+                     self.update_slider_text((s, e))
+                 else:
+                     self.slider.set_val((start_sample, start_sample + new_width))
+                     self.update_slider_text((start_sample, start_sample + new_width))
+
+                 self.slider.eventson = old_eventson
+
+        finally:
+            self.navigating = False
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Linux Audio Waveform Visualizer 2026 (mmap)")
+    parser.add_argument('files', nargs='+', help="Input .bin files (int32)")
+    parser.add_argument('--rate', type=int, default=48000, help="Sample rate (Hz)")
+    parser.add_argument('--min-zoom-samples', type=int, default=100, help="Minimum samples to show when zoomed in")
+    args = parser.parse_args()
+
+    app = WaveformVisualizer(args.files, args.rate, args.min_zoom_samples)
+
+
+
+================================================================================
+FILE: tests\lfo.c
+================================================================================
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define SAMPLES_PER_SEC (48000.0)
+
+#include "../util.h"
+#include "../lfo.h"
+
+static struct lfo_state lfo;
+
+int main(int argc, char **argv)
+{
+	float maxerr = 0;
+	u32 maxidx = 0;
+
+	// This checks every 2**32 value and can be very slow.
+	// Only run on a fast machine
+	lfo.step = 1;
+	do {
+		u32 idx = lfo.idx;
+		float val = lfo_step(&lfo, lfo_sinewave);
+		float s = (idx / TWO_POW_32) * 2 * M_PI;
+		float exact = sin(s);
+		float err = fabs(val - exact);
+		if (err > maxerr) {
+			maxerr = err;
+			maxidx = idx;
+		}
+	} while (lfo.idx);
+
+	printf("Max LFO sinewave error %.8f at %u\n", maxerr, maxidx);
+	return 0;
+}
+
+
+
+================================================================================
+FILE: tests\sincos.c
+================================================================================
+
+#include <math.h>
+#include <stdio.h>
+
+#define SAMPLES_PER_SEC 48000.0f
+
+typedef unsigned int uint;
+#include "../util.h"
+
+int main(int argc, char **argv)
+{
+	double maxesin = 0, maxecos = 0;
+
+	for (double f = 0; f < 1.0001; f+=0.001) {
+		struct sincos my = fastsincos(f);
+		double s = sin(2*M_PI*f), c = cos(2*M_PI*f);
+		double esin = fabs(my.sin - s);
+		double ecos = fabs(my.cos - c);
+		maxesin = fmax(esin,maxesin);
+		maxecos = fmax(ecos,maxecos);
+	}
+	printf("Max sin() error %.8f (%.1f digits)\n", maxesin, -log10(maxesin));
+	printf("Max cos() error %.8f (%.1f digits)\n", maxecos, -log10(maxecos));
+}
+
+

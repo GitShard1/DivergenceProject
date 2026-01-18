@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home - Divergence</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">Divergence</div>
+      <ul class="nav-menu">
+        <li><a href="home.html" class="nav-link">Home</a></li>
+        <li><a href="profile.html" class="nav-link">Profile</a></li>
+        <li><a href="projects.html" class="nav-link">Projects</a></li>
+        <li><a href="index.html" class="nav-link sign-out">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="home-container">
+    <!-- 
+      PROFILE SECTION
+      Data from: userData.profile
+    -->
+    <div class="profile-section">
+      <!-- 
+        Profile Header
+        - avatar: userData.profile.avatar
+        - nameUser: userData.profile.nameUser
+        - username: userData.profile.username
+      -->
+      <div class="profile-header">
+        <img src="" alt="" class="profile-avatar" />
+        <div class="profile-info">
+          <h2></h2>
+          <p class="username"></p>
+        </div>
+      </div>
+
+      <!-- 
+        Stats Cards
+        Data from: userData.statsHome
+        - totalProjects: userData.statsHome.totalProjects
+        - totalHours: userData.statsHome.totalHours
+        - totalLanguages: userData.statsHome.totalLanguages
+      -->
+      <div class="stats-grid">
+        <!-- Total Projects -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <span class="stat-label">Total Projects</span>
+          </div>
+          <p class="stat-value stat-value-projects"></p>
+        </div>
+
+        <!-- Quality -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon yellow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+              </polygon>
+              </svg>
+            </div>
+            <span class="stat-label">Rating</span>
+          </div>
+          <p class="stat-value stat-value-rating"></p>
+        </div>
+
+        <!-- Total Languages -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+            </div>
+            <span class="stat-label">Languages</span>
+          </div>
+          <p class="stat-value stat-value-languages"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column: Projects -->
+      <div class="left-column">
+        <!-- 
+          TOP PROJECTS SECTION
+          Data from: userData.projects.top[]
+          Each project has:
+          - nameTop: Project name
+          - descriptionTop: Project description
+          - languageTop: Programming language
+        -->
+        <div class="section-card">
+          <div class="section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+              </polygon>
+            </svg>
+            <h3>Top Projects</h3>
+          </div>
+          <div class="projects-list">
+            <!-- Populated by renderHomePage() in script.js -->
+          </div>
+        </div>
+
+        <!-- 
+          NEW PROJECTS SECTION
+          Data from: userData.projects.new[]
+          Each project has:
+          - nameNew: Project name
+          - descriptionNew: Project description
+          - languageNew: Programming language
+          - languageColorNew: Hex color for language
+          - createdAtNew: When project was created
+        -->
+        <div class="section-card">
+          <div class="section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+              </path>
+            </svg>
+            <h3>New Projects</h3>
+          </div>
+          <div class="projects-list">
+            <!-- Populated by renderHomePage() in script.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 
+        RIGHT COLUMN: RECENT WORKS
+        Data from: userData.recentWorks[]
+        Each work item has:
+        - nameRecent: Work item name
+        - projectRecent: Which project it belongs to
+        - statusRecent: 'In Progress' or 'To Do'
+        - priorityRecent: 'High' or 'Medium'
+        - lastUpdatedRecent: Time ago string
+      -->
+      <div class="right-column">
+        <div class="section-card sticky">
+          <div class="section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <h3>Recent Works</h3>
+          </div>
+          <div class="works-list">
+            <!-- Populated by renderHomePage() in script.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js" type="module"></script>
+</body>
+
+</html>

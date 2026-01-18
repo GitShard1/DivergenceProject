@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile - Divergence</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">Divergence</div>
+      <ul class="nav-menu">
+        <li><a href="home.html" class="nav-link">Home</a></li>
+        <li><a href="profile.html" class="nav-link">Profile</a></li>
+        <li><a href="projects.html" class="nav-link">Projects</a></li>
+        <li><a href="index.html" class="nav-link sign-out">Sign Out</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="profile-container">
+    <div class="profile-grid">
+      <!-- 
+        LEFT SIDEBAR: USER PROFILE
+        Data from: userData.profile
+        - avatar: Profile picture URL
+        - nameUser: User's full name
+        - username: GitHub username
+        - bio: User biography
+      -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-card-content">
+            <!-- Profile Picture -->
+            <img src="" alt="" class="profile-picture" />
+            <!-- User's Full Name -->
+            <h2 class="profile-name"></h2>
+            <!-- Username -->
+            <p class="profile-username"></p>
+            <!-- Bio -->
+            <p class="profile-bio"></p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT: Skills and Technologies -->
+      <main class="profile-main">
+        <!-- 
+          SKILLS RADAR CHART
+          Data from: userData.skills.radar[]
+          Each skill has:
+          - subjectAI, subjectWeb, etc.: Skill name
+          - score: Number 0-100
+        -->
+        <section class="skills-section">
+          <h3>Skills Overview</h3>
+          <h4>Chart of all the repositories into a comprehensive developer profile</h4>
+          <div class="chart-container">
+            <!-- Chart populated by renderProfilePage() using Chart.js -->
+            <canvas id="skillsChart"></canvas>
+          </div>
+        </section>
+
+        <!-- 
+          PROGRAMMING LANGUAGES
+          Data from: userData.languages[]
+          Each language has:
+          - nameLanguage: Language name (e.g., 'JavaScript')
+          - percentageLanguage: Usage percentage (e.g., 70)
+          - color: Hex color code (e.g., '#f1e05a')
+        -->
+        <section class="languages-section">
+          <h3>Programming Languages</h3>
+          <h4>Percentage of usage in each language</h4>
+          <div class="languages-grid">
+            <!-- Populated by renderProfilePage() in script.js -->
+          </div>
+        </section>
+
+        <!-- 
+          FRAMEWORKS
+          Data from: userData.frameworks[]
+          Array of framework name strings
+          Example: ['Next.js', 'Express', 'FastAPI']
+        -->
+        <section class="frameworks-section">
+          <h3>Frameworks</h3>
+          <h4>Frameworks Frequency</h4>
+          <div class="tags-container">
+            <!-- Populated by renderProfilePage() in script.js -->
+          </div>
+        </section>
+
+        <!-- 
+          LIBRARIES
+          Data from: userData.libraries[]
+          Array of library name strings
+          Example: ['Redux', 'React Query', 'Axios']
+        -->
+        <section class="libraries-section">
+          <h3>Libraries</h3>
+          <h4>Libraries & Tools use frequency</h4>
+          <div class="tags-container">
+            <!-- Populated by renderProfilePage() in script.js -->
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="script.js" type="module"></script>
+</body>
+
+</html>

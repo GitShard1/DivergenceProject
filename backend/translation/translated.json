@@ -1,0 +1,63 @@
+{
+  "languages": {
+    "Markdown": 33.33,
+    "HTML": 60.0,
+    "CSS": 6.67
+  },
+  "libraries": {
+    "the": 6,
+    "Tayda": 4,
+    "Mouser": 4,
+    "kits": 4,
+    "Amazon": 4,
+    "that": 2,
+    "top": 2,
+    "center": 2,
+    "bottom": 2,
+    "Gen": 2,
+    "scratch": 2,
+    "mine": 2,
+    "surface": 2,
+    "text": 2,
+    "vsnprintf": 2,
+    "file": 2,
+    "template": 2,
+    "air": 2,
+    "model": 2,
+    "config": 2,
+    "inside": 2,
+    "src": 2,
+    "dc_usbhid_read": 2,
+    "several": 2
+  },
+  "frameworks": null,
+  "technical_depth": {
+    "depth_score": 1.0,
+    "avg_repo_size": 515.95,
+    "max_repo_size": 1483.46,
+    "level": "advanced"
+  },
+  "composition": {
+    "frontend": 1.0,
+    "backend": 0.0,
+    "data": 0.0
+  },
+  "skills": {
+    "ai_ml": 0.0,
+    "web_development": 0.0,
+    "mobile_development": 0.0,
+    "cloud_devops": 0.0,
+    "data_engineering": 0.0,
+    "cybersecurity": 0.0
+  },
+  "quality": {
+    "avg_test_coverage": 0.0,
+    "quality_score": 0.0,
+    "rating": "needs improvement"
+  },
+  "metadata": {
+    "total_repositories": 6,
+    "total_commits": 0,
+    "analysis_timestamp": "2026-01-17T19:29:38.524668"
+  }
+}
