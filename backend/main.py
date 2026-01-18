@@ -1,21 +1,52 @@
 import os
+import sys
+import subprocess
+import json
 import certifi
 import httpx
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from models.project import ProjectCreate
 import uuid
 from jose import jwt
-
+from pathlib import Path
 
 
 load_dotenv()
+
+
+def get_current_user(authorization: str = Header(None)) -> str:
+    """Extract username from JWT token in Authorization header"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing authorization header")
+    
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid authorization scheme")
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("username")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return username
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+# GitHub OAuth Configuration
+
 
 ca = certifi.where()
 
@@ -27,7 +58,7 @@ GITHUB_USER_URL = "https://api.github.com/user"
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
@@ -40,6 +71,8 @@ async def lifespan(app: FastAPI):
         tlsCAFile=ca,
         tlsAllowInvalidCertificates=True)
     app.mongodb = app.mongodb_client.divergence
+    app.users_collection = app.mongodb.users
+    app.projects_collection = app.mongodb.projects
     print("Connected to MongoDB!")
 
     yield
@@ -61,6 +94,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve HTML files from app/UI directory
+ui_path = Path(__file__).parent.parent / "app" / "UI"
+app.mount("/ui", StaticFiles(directory=str(ui_path), html=True), name="ui")
+
+"""
 # Health check
 @app.get("/")
 async def root():
@@ -68,6 +106,13 @@ async def root():
         "message": "Divergence API is running",
         "status": "healthy"
     }
+"""
+
+# Redirect root to index.html
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/ui/index.html")
+
 
 @app.get("/health")
 async def health_check():
@@ -211,20 +256,162 @@ async def github_callback(code: str, state: str = None):
            )
       
        access_token = create_access_token(
-           data={"sub": str(user.get("_id"))},
+           data={"username": user["username"]},
            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
        )
       
-       return JSONResponse({
-           "access_token": access_token,
-           "token_type": "bearer",
-           "user": {
-               "username": user["username"],
-               "email": user.get("email"),
-               "avatar_url": user.get("avatar_url")
-           }
-       })
+       # Redirect to frontend with token in URL
+       frontend_url = f"http://localhost:3000/home?token={access_token}&username={user['username']}"
+       return RedirectResponse(url=frontend_url)
    except Exception as e:
        print(f"✗ Error: {e}")
        raise HTTPException(status_code=400, detail=str(e))
 
+
+
+
+# Translation    =================================================================
+
+
+# Process GitHub user data endpoint
+@app.post("/process-github/{github_username}")
+async def process_github_user(github_username: str, current_user: str = Depends(get_current_user)):
+    """Process GitHub user data - only if logged in as that user"""
+
+    # Only allow processing if logged in as that user
+    if current_user != github_username:
+        raise HTTPException(status_code=403, detail="You can only process your own GitHub data")
+    
+    try:
+        return process_github_user_main(github_username)
+        
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=408, detail="Processing timeout - operation took too long")
+    except Exception as e:
+        print(f"Processing error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Processing failed: {str(e)}")
+
+
+
+def process_github_user_main(github_username):
+    print(f"Starting processing pipeline for user: {github_username}")
+
+   
+    """
+    Process steps:
+    1. GithubFetchPythonValt2.py - top 5 repos to txt > RESULTS.txt
+    2. filtering.py - Filter > filtered.json
+    3. translation.py - Translate to skills & stats > translated.json
+    
+    Only the authenticated user can process their own GitHub data.
+    """
+    
+
+    translation_dir = Path(__file__).parent / "translation"
+    # same as os.path.join(os.path.dirname(__file__), "translation")
+
+    # Step 1: Run GithubFetchPythonValt2.py
+    print("Step 1: Fetching GitHub repositories...")
+    github_fetch_python_valt2 = translation_dir / "GithubFetchPythonValt2.py"
+    
+    username_url = f"https://github.com/{github_username}"
+    
+    result1 = subprocess.run(
+        #argument order: [smthn] [filename] [args...]
+        [sys.executable, str(github_fetch_python_valt2), username_url],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=120
+    )
+    
+    if result1.returncode != 0:
+        print(f"GithubFetch error: {result1.stderr}")
+        raise HTTPException(status_code=400, detail=f"GitHub fetch failed: {result1.stderr}")
+    
+    print("✓ GitHub repositories fetched successfully")
+    
+    # Step 2: Run filtering.py
+    print("Step 2: Filtering and cleaning data...")
+    filtering_script = translation_dir / "filtering.py"
+    RESULTS_txt_file = translation_dir / "RESULTS.txt"  
+    print(f"DEBUG: RESULTS_txt_file path: {RESULTS_txt_file}")
+    result2 = subprocess.run(   
+        [sys.executable, str(filtering_script), str(RESULTS_txt_file)],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=60
+    )
+    
+    if result2.returncode != 0:
+        print(f"Filtering error: {result2.stderr}")
+        raise HTTPException(status_code=400, detail=f"Filtering failed: {result2.stderr}")
+    
+    print("✓ Data filtered successfully")
+    
+    # Step 3: Run translation.py
+    print("Step 3: Translating to developer profile...")
+    translation_script = translation_dir / "translation.py"
+    filtered_json_file = translation_dir / "filtered.json"
+    
+    result3 = subprocess.run(
+        [sys.executable, str(translation_script), str(filtered_json_file)],
+        capture_output=True,
+        text=True,
+        cwd=str(translation_dir),
+        timeout=60
+    )
+    
+    if result3.returncode != 0:
+        print(f"Translation error: {result3.stderr}")
+        raise HTTPException(status_code=400, detail=f"Translation failed: {result3.stderr}")
+    
+    print("✓ Developer profile translated successfully")
+    
+    # Load the results
+    filtered_file = translation_dir / "filtered.json"
+    translated_file = translation_dir / "translated.json"
+    
+    filtered_data = None
+    translated_data = None
+    
+
+    if filtered_file.exists():
+        with open(filtered_file, 'r') as f:
+            filtered_data = json.load(f)
+    
+    if translated_file.exists():
+        with open(translated_file, 'r') as f:
+            translated_data = json.load(f)
+    
+    # Store in MongoDB as 'user_github_results' collection
+    # Note: This is a sync function, MongoDB operations removed to avoid blocking
+    # Consider making this async or moving DB operations to the async caller
+    
+    print(" DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE")
+    print("Translated FILE:",translated_file)
+
+    return JSONResponse({
+        "status": "success",
+        "message": f"Successfully processed {github_username}",
+        "github_username": github_username,
+        "translated_data": translated_data
+    })
+
+
+@app.get("/get-filtered-data/{github_username}")
+async def get_filtered_data(github_username: str, current_user: str = Depends(get_current_user)):
+    """Get filtered data for a GitHub user - reads from filtered.json"""
+    
+    if current_user != github_username:
+        raise HTTPException(status_code=403, detail="You can only access your own data")
+    
+    filtered_file = Path(__file__).parent / f"translation_{github_username}" / "filtered.json"
+    
+    if filtered_file.exists():
+        with open(filtered_file, 'r') as f:
+            filtered_data = json.load(f)
+        return JSONResponse(filtered_data)
+    
+    raise HTTPException(status_code=404, detail="No filtered data found for this user")

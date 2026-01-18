@@ -1,0 +1,73 @@
+{
+  "languages": {
+    "JavaScript": 7.14,
+    "TypeScript": 54.76,
+    "JSON": 26.98,
+    "Markdown": 2.38,
+    "HTML": 3.97,
+    "CSS": 3.17,
+    "YAML": 1.59
+  },
+  "libraries": {
+    "version": 3,
+    "the": 2,
+    "type": 1,
+    "invalid": 1,
+    "clipboard": 1,
+    "changelog": 1,
+    "this": 1,
+    "that": 1,
+    "you": 1,
+    "those": 1,
+    "globals": 1,
+    "tseslint": 1,
+    "reactHooks": 1,
+    "reactRefresh": 1,
+    "babel": 1,
+    "react": 1,
+    "tailwindcss": 1,
+    "DOMPurify": 1,
+    "videoIcon": 1,
+    "audioIcon": 1,
+    "folderIcon": 1,
+    "pdt": 1,
+    "product": 1,
+    "settings": 1,
+    "some": 1,
+    "additional": 1,
+    "http": 1,
+    "denying": 1,
+    "other": 1,
+    "running": 1
+  },
+  "frameworks": null,
+  "technical_depth": {
+    "depth_score": 0.141,
+    "avg_repo_size": 70.45,
+    "max_repo_size": 167.88,
+    "level": "beginner"
+  },
+  "composition": {
+    "frontend": 0.202,
+    "backend": 0.535,
+    "data": 0.264
+  },
+  "skills": {
+    "ai_ml": 0.0,
+    "web_development": 0.1,
+    "mobile_development": 0.0,
+    "cloud_devops": 0.0,
+    "data_engineering": 0.0,
+    "cybersecurity": 0.0
+  },
+  "quality": {
+    "avg_test_coverage": 7.74,
+    "quality_score": 0.077,
+    "rating": "needs improvement"
+  },
+  "metadata": {
+    "total_repositories": 3,
+    "total_commits": 0,
+    "analysis_timestamp": "2026-01-17T19:25:20.639356"
+  }
+}
