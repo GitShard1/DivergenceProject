@@ -1,47 +1,285 @@
-<<<<<<< HEAD
-[00:00:00.707] Server  LOG     ✓ Ready in 525ms
-[00:00:03.644] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:15.124] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:04:39.064] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:05:47.783] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:07:09.896] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:07:52.814] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:09:55.778] Browser LOG     Response: {"detail":[{"input":null,"loc":["query","request"],"msg":"Field required","type":"missing"}]}
-[00:10:11.661] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:10:27.786] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:10:38.697] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:11:22.585] Server  LOG     ✓ Compiled in 19ms
-[00:11:25.482] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:11:35.414] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"test","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:11:53.927] Server  LOG     ✓ Compiled in 22ms
-[00:12:19.972] Server  LOG     ✓ Compiled in 28ms
-[00:12:57.425] Server  LOG     ✓ Compiled in 27ms
-[00:13:11.409] Browser LOG     Response: {"detail":[{"ctx":{"min_length":10},"input":"tewst","loc":["body","goal"],"msg":"String should have at least 10 characters","type":"string_too_short"}]}
-[00:16:39.211] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5e486dd73299d082d42f, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:16:41.131] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5e486dd73299d082d42f, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:16:41.131] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5e486dd73299d082d42f, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:17:27.931] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5fc01fae354d6b4d87fb, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:21:22.999] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5fc01fae354d6b4d87fb, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:21:24.602] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5fc01fae354d6b4d87fb, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:21:24.602] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c5fc01fae354d6b4d87fb, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:31:54.750] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c60d49d9c87ff1322a9d0, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:31:59.098] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:32:59.491] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c636cc57c5f85758ed6d2, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:40:51.815] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:41:41.988] Browser LOG     Response: {"detail":"SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms),SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 696c65444491eb1d70235464, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-00.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-01.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('SSL handshake failed: ac-3yvj0qr-shard-00-02.ncuqrpz.mongodb.net:27017: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1028) (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>"}
-[00:43:12.349] Browser LOG     Response: {"projectId":"3763dbe5-cf24-447b-8039-0b874e8d5fcd","status":"created"}
-[01:34:29.827] Server  LOG     ✓ Compiled in 185ms
-[01:34:37.994] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:34:52.887] Browser ERROR   Error: {}
-[01:35:14.087] Server  LOG     ✓ Compiled in 107ms
-[01:36:14.544] Server  LOG     ✓ Compiled in 29ms
-[01:36:44.875] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:37:00.921] Browser LOG     Response: {"projectId":"259d2b0f-c922-474e-9957-8b559bdd2cd2","status":"created"}
-[01:38:18.867] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:38:22.310] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:38:25.786] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-=======
-[00:00:02.827] Server  LOG     ✓ Ready in 2.1s
-[00:00:04.129] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
->>>>>>> 886b0b8ed27f0a5c2e2b8ec0fabc7a6d82b88555
-[01:42:44.371] Server  LOG     ✓ Compiled in 79ms
+[00:00:00.575] Server  LOG     ✓ Ready in 421ms
+[00:00:01.536] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:07.366] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:20.336] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:20.428] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:43.219] Server  LOG     ✓ Compiled in 313ms
+[00:02:15.137] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:40.634] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:03.598] Server  ERROR   ⨯ ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:03:03.600] Server  ERROR   ⨯ ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:04:02.329] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:02.500] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:02.500] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:05.340] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:05.478] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:05.478] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:24.594] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:25.988] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:26.127] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:26.127] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:29.800] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:33.906] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:35.411] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:35.547] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:35.547] Browser ERROR   ./app/home/page.tsx:6:1
+Module not found: Can't resolve './globals.css'
+  4 | import Navbar from '@/components/Navbar'
+  5 |
+> 6 | import './globals.css'
+    | ^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | const API_ENDPOINT = "http://localhost:8000"
+  9 |
+
+Import traces:
+  Client Component Browser:
+    ./app/home/page.tsx [Client Component Browser]
+    ./app/home/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/home/page.tsx [Client Component SSR]
+    ./app/home/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[00:04:40.806] Server  LOG     ✓ Compiled in 55ms
+[00:04:46.083] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:46.174] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:31.907] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:35.876] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

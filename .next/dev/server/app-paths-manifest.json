@@ -1,8 +1,5 @@
 {
-<<<<<<< HEAD
   "/_not-found/page": "app/_not-found/page.js",
+  "/home/page": "app/home/page.js",
   "/page": "app/page.js"
-=======
-  "/_not-found/page": "app/_not-found/page.js"
->>>>>>> 886b0b8ed27f0a5c2e2b8ec0fabc7a6d82b88555
 }
