@@ -211,19 +211,14 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
+function ProjectScopingChat({ isOpen, onClose, projectId, projectName, projectGoal, projectDueDate }) {
     _s();
-    const [confidence, setConfidence] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(15);
+    const [confidence, setConfidence] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [userInput, setUserInput] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
-    const [chatHistory, setChatHistory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([
-        {
-            type: 'assistant',
-            content: "Let's start by understanding your project better. What's the core functionality you're building?"
-        }
-    ]);
+    const [chatHistory, setChatHistory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isComplete, setIsComplete] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [sessionId, setSessionId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [threadId, setThreadId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const chatEndRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const scrollToBottom = ()=>{
         chatEndRef.current?.scrollIntoView({
@@ -237,36 +232,84 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
     }["ProjectScopingChat.useEffect"], [
         chatHistory
     ]);
+    // Initialize scoping when modal opens
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "ProjectScopingChat.useEffect": ()=>{
+            if (isOpen && !threadId) {
+                initializeScoping();
+            }
+        }
+    }["ProjectScopingChat.useEffect"], [
+        isOpen
+    ]);
+    const initializeScoping = async ()=>{
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:8000/api/projects/create-ai-context', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: projectName,
+                    goal: projectGoal,
+                    dueDate: projectDueDate,
+                    mode: "solo",
+                    teamMembers: [],
+                    repoOption: "new",
+                    existingRepoUrl: null
+                })
+            });
+            const data = await response.json();
+            // Save thread ID
+            setThreadId(data.thread_id);
+            // Set initial confidence
+            setConfidence(Math.round(data.confidence * 100));
+            // Add first AI question
+            setChatHistory([
+                {
+                    type: 'assistant',
+                    content: data.question
+                }
+            ]);
+        } catch (error) {
+            console.error('Error initializing scoping:', error);
+            setChatHistory([
+                {
+                    type: 'error',
+                    content: 'Failed to start scoping. Please try again.'
+                }
+            ]);
+        } finally{
+            setIsLoading(false);
+        }
+    };
     const handleSubmit = async ()=>{
-        if (!userInput.trim() || isLoading) return;
-        const response = userInput;
+        if (!userInput.trim() || isLoading || !threadId) return;
+        const userMessage = userInput.trim();
         setUserInput('');
         // Add user message to history
         setChatHistory((prev)=>[
                 ...prev,
                 {
                     type: 'user',
-                    content: response
+                    content: userMessage
                 }
             ]);
         setIsLoading(true);
         try {
-            // Call your Backboard API endpoint
-            const result = await fetch(`http://localhost:8000/api/projects/${projectId}/chat`, {
+            // Call continue scoping endpoint
+            const response = await fetch('http://localhost:8000/api/projects/continue-scoping', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: response,
-                    session_id: sessionId
+                    thread_id: threadId,
+                    message: userMessage
                 })
             });
-            const data = await result.json();
-            // Update session ID
-            if (data.session_id) {
-                setSessionId(data.session_id);
-            }
+            const data = await response.json();
             // Update confidence
             setConfidence(Math.round(data.confidence * 100));
             // Check if complete
@@ -276,16 +319,16 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                         ...prev,
                         {
                             type: 'system',
-                            content: '🎉 Analysis complete! Generating your personalized project breakdown...'
+                            content: '🎉 Scoping complete! Ready to generate your project breakdown.'
                         }
                     ]);
             } else {
-                // Add AI response
+                // Add AI's next question
                 setChatHistory((prev)=>[
                         ...prev,
                         {
                             type: 'assistant',
-                            content: data.message
+                            content: data.question
                         }
                     ]);
             }
@@ -309,22 +352,9 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
         }
     };
     const handleGenerateBreakdown = async ()=>{
-        try {
-            const result = await fetch(`http://localhost:8000/api/projects/${projectId}/generate-breakdown`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await result.json();
-            // Close chat and navigate to breakdown view
-            alert('Breakdown generated! Redirecting...');
-            onClose();
-        // TODO: Navigate to breakdown page
-        } catch (error) {
-            console.error('Error generating breakdown:', error);
-            alert('Failed to generate breakdown');
-        }
+        // TODO: Add task generation endpoint call here
+        alert('Task generation coming next!');
+        onClose();
     };
     if (!isOpen) return null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -334,7 +364,7 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                 onClick: onClose
             }, void 0, false, {
                 fileName: "[project]/components/ProjectScopingChat.tsx",
-                lineNumber: 134,
+                lineNumber: 165,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -355,7 +385,7 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 142,
+                                            lineNumber: 173,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -363,13 +393,13 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             children: "AI-powered project planning"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 143,
+                                            lineNumber: 174,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 141,
+                                    lineNumber: 172,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -379,18 +409,18 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                         size: 24
                                     }, void 0, false, {
                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                        lineNumber: 146,
+                                        lineNumber: 177,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 145,
+                                    lineNumber: 176,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                            lineNumber: 140,
+                            lineNumber: 171,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -404,7 +434,7 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             children: "Project Understanding"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 153,
+                                            lineNumber: 184,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -415,13 +445,13 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 154,
+                                            lineNumber: 185,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 183,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -433,18 +463,18 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                         }
                                     }, void 0, false, {
                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                        lineNumber: 158,
+                                        lineNumber: 189,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 157,
+                                    lineNumber: 188,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                            lineNumber: 151,
+                            lineNumber: 182,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -457,12 +487,12 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             children: message.content
                                         }, void 0, false, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 174,
+                                            lineNumber: 205,
                                             columnNumber: 17
                                         }, this)
                                     }, idx, false, {
                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                        lineNumber: 168,
+                                        lineNumber: 199,
                                         columnNumber: 15
                                     }, this)),
                                 isLoading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -474,38 +504,38 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                                 className: __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ProjectScopingChat$2e$module$2e$css__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].spinner
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ProjectScopingChat.tsx",
-                                                lineNumber: 193,
+                                                lineNumber: 224,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "Analyzing..."
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ProjectScopingChat.tsx",
-                                                lineNumber: 194,
+                                                lineNumber: 225,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                        lineNumber: 192,
+                                        lineNumber: 223,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 191,
+                                    lineNumber: 222,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     ref: chatEndRef
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 199,
+                                    lineNumber: 230,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                            lineNumber: 166,
+                            lineNumber: 197,
                             columnNumber: 11
                         }, this),
                         !isComplete ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -519,23 +549,23 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                             onChange: (e)=>setUserInput(e.target.value),
                                             onKeyDown: handleKeyDown,
                                             placeholder: "Type your response...",
-                                            disabled: isLoading,
+                                            disabled: isLoading || !threadId,
                                             className: __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ProjectScopingChat$2e$module$2e$css__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].textarea,
                                             rows: 3
                                         }, void 0, false, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 206,
+                                            lineNumber: 237,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                             onClick: handleSubmit,
-                                            disabled: !userInput.trim() || isLoading,
+                                            disabled: !userInput.trim() || isLoading || !threadId,
                                             className: __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ProjectScopingChat$2e$module$2e$css__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].sendButton,
                                             children: isLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                                                 className: __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ProjectScopingChat$2e$module$2e$css__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].spinner
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ProjectScopingChat.tsx",
-                                                lineNumber: 222,
+                                                lineNumber: 253,
                                                 columnNumber: 21
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                                 children: [
@@ -543,27 +573,27 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                                         children: "Next"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                                        lineNumber: 225,
+                                                        lineNumber: 256,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$send$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Send$3e$__["Send"], {
                                                         size: 16
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/ProjectScopingChat.tsx",
-                                                        lineNumber: 226,
+                                                        lineNumber: 257,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true)
                                         }, void 0, false, {
                                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                                            lineNumber: 216,
+                                            lineNumber: 247,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 205,
+                                    lineNumber: 236,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -571,13 +601,13 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                     children: "Press Enter to send • Shift + Enter for new line"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 232,
+                                    lineNumber: 263,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                            lineNumber: 204,
+                            lineNumber: 235,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ProjectScopingChat$2e$module$2e$css__$5b$app$2d$client$5d$__$28$css__module$29$__["default"].completeSection,
@@ -587,7 +617,7 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                     children: "Ready to generate your project breakdown"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 238,
+                                    lineNumber: 269,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -596,30 +626,30 @@ function ProjectScopingChat({ isOpen, onClose, projectId, projectName }) {
                                     children: "Generate Project Breakdown"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                                    lineNumber: 241,
+                                    lineNumber: 272,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ProjectScopingChat.tsx",
-                            lineNumber: 237,
+                            lineNumber: 268,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ProjectScopingChat.tsx",
-                    lineNumber: 137,
+                    lineNumber: 168,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ProjectScopingChat.tsx",
-                lineNumber: 136,
+                lineNumber: 167,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true);
 }
-_s(ProjectScopingChat, "eCWodcfJsr/RZ+y7qUjPWF3I1Bo=");
+_s(ProjectScopingChat, "YJ41HYHwW1ZhBpBZkoJE2VOYvOE=");
 _c = ProjectScopingChat;
 var _c;
 __turbopack_context__.k.register(_c, "ProjectScopingChat");
